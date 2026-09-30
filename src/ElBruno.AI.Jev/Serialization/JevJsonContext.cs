@@ -16,7 +16,7 @@ internal sealed class JevWireRequest
     public required JsonElement State { get; init; }
 
     [JsonPropertyName("model")]
-    public required string Model { get; init; }
+    public string? Model { get; init; }
 
     [JsonPropertyName("questions")]
     public required Dictionary<string, JevWireQuestion> Questions { get; init; }

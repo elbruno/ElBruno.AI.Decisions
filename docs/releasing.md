@@ -4,7 +4,7 @@ Preparing this infrastructure does **not** authorize a publication. Ordinary
 builds, CI, and package-consumer checks need no Jev credentials and make no Jev
 service calls. NuGet dependency restore requires network access. Live service
 validation remains necessary before claiming production readiness. The maintainer
-has explicitly authorized **tentative 0.5.0** while live checks are deferred.
+has explicitly authorized **tentative 0.6.0** while live checks are deferred.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. No other suffix-free version is authorized.
 
@@ -32,7 +32,7 @@ For an explicitly selected version, pass the **same** override to pack and
 the package check; do not use `--no-build` against assemblies of another version:
 
 ```powershell
-$version = '0.5.0'
+$version = '0.6.0'
 dotnet pack $library --configuration Release --output $packages "-p:Version=$version"
 .\scripts\Test-Package.ps1 -PackageDirectory $packages -Version $version
 ```
@@ -48,7 +48,7 @@ The check:
   ignoring UTF-8 BOM and CRLF/LF differences. This preserves the dedicated
   NuGet page instead of accidentally packing the repository README's relative
   hero image. Check downloaded artifacts from their matching release checkout.
-- Requires tentative/unverified notices in the actual 0.5.0 package description,
+- Requires tentative/unverified notices in the actual 0.6.0 package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
   `tests\ElBruno.AI.Jev.PackageTests\.work`. Its only SDK dependency is an
@@ -124,8 +124,8 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 `publish.yml` supports:
 
-1. A **published GitHub release** with a tag such as `v0.5.0` or
-   `0.5.0`; the tag resolves the exact source commit. This runs
+1. A **published GitHub release** with a tag such as `v0.6.0` or
+   `0.6.0`; the tag resolves the exact source commit. This runs
    validation only and never automatically publishes to NuGet.
 2. **Manual dispatch** with required `version` and `ref` inputs. `version` has
    no `v` prefix. `ref` must be the corresponding version tag, optionally
@@ -135,7 +135,7 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 **Publication is blocked by default while live compatibility is unverified.**
 Only a manual dispatch with `approve-unverified-publication=true` and either
-the explicitly authorized **`0.5.0`** or a
+the explicitly authorized **`0.6.0`** or a
 `major.minor.patch-preview[.identifier...]` version can reach the publishing
 job. That input acknowledges the absence of successful live validation;
 it is not an attestation that live tests passed. Other suffix-free versions
@@ -145,7 +145,7 @@ checks the exact exception, opt-in requirement, event/ref constraints, and
 invalid versions on every validation run. Creating a GitHub release, approving repository
 creation, or leaving the checkbox unchecked does not authorize a NuGet push.
 
-NuGet treats **`0.5.0` as a stable-channel version** because it has no prerelease
+NuGet treats **`0.6.0` as a stable-channel version** because it has no prerelease
 suffix; NuGet has no separate tentative flag. The description, package README,
 release notes, and repository status therefore prominently disclose tentative
 early-access status and deferred live compatibility. A GitHub release may be
@@ -179,7 +179,7 @@ username (`elbruno`), not an API key. No long-lived NuGet API key is needed.
 ### Existing trusted-publishing policy
 
 The existing NuGet trusted-publishing policy was successfully used to publish
-**`ElBruno.AI.Jev` 0.5.0**. **Reuse it; do not create a duplicate.** The OIDC
+**`ElBruno.AI.Jev` 0.6.0**. **Reuse it; do not create a duplicate.** The OIDC
 exchange and first package/symbol push succeeded. `NUGET_USER` is now configured
 in the protected `release` environment; the original publication used the same
 secret name at repository scope. Before changing the publishing configuration,
@@ -250,7 +250,7 @@ does **not** replace a review of the initial public API. Before authorization:
   mapping validation alone does not prove public repository visibility.
 - Finish actual coverage gates. Before claiming production readiness, finish
   authorized live-contract validation; offline consumer success is not
-  live-service compatibility evidence. Tentative 0.5.0 and approved previews
+  live-service compatibility evidence. Tentative 0.6.0 and approved previews
   must disclose unverified live compatibility rather than claim those tests passed.
 
 After an approved version is published, configure

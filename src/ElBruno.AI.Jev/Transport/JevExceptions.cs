@@ -96,3 +96,18 @@ public sealed class JevProtocolException : JevException
     /// <summary>Gets native JSON when available. This property can contain sensitive data.</summary>
     public JsonElement? RawRepresentation { get; }
 }
+
+/// <summary>A configured provider does not expose an SDK capability.</summary>
+public sealed class JevUnsupportedCapabilityException : JevException
+{
+    /// <summary>Creates an unsupported-capability failure.</summary>
+    public JevUnsupportedCapabilityException(string capability, string message)
+        : base(message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(capability);
+        Capability = capability;
+    }
+
+    /// <summary>Gets the unsupported SDK capability.</summary>
+    public string Capability { get; }
+}
