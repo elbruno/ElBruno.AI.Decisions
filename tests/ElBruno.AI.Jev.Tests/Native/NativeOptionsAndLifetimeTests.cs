@@ -25,6 +25,7 @@ public sealed class NativeOptionsAndLifetimeTests
         Assert.False(options.IncludeErrorBody);
         Assert.False(options.RetryTransientErrors);
         Assert.False(options.AllowInsecureLoopback);
+        Assert.False(options.UseLocalLaya);
         using var client = new JevClient(NativeFixtures.Options());
         client.Dispose();
         client.Dispose();
@@ -142,6 +143,39 @@ public sealed class NativeOptionsAndLifetimeTests
         }));
         await client.EvaluateAsync(NativeFixtures.ChoiceRequest());
         Assert.Equal(new Uri(new Uri(endpoint), "v1/systemone"), Assert.Single(handler.Requests).Uri);
+    }
+
+    [Theory]
+    [InlineData("http://127.0.0.1:8000")]
+    [InlineData("https://localhost:8000")]
+    public void LocalLayaAllowsOnlyLoopbackOriginsAndOptionalBearerAuthentication(string endpoint)
+    {
+        using var http = new HttpClient(new RecordingHandler((_, _) => throw new InvalidOperationException("must not send")));
+        using var anonymous = new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri(endpoint)
+        });
+        using var authenticated = new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri(endpoint),
+            ApiKey = NativeFixtures.Credential
+        });
+    }
+
+    [Theory]
+    [InlineData("https://laya.example")]
+    [InlineData("http://laya.example")]
+    public void LocalLayaRejectsRemoteOrigins(string endpoint)
+    {
+        using var http = new HttpClient(new RecordingHandler((_, _) => throw new InvalidOperationException("must not send")));
+        ArgumentException exception = Assert.Throws<ArgumentException>(() => new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri(endpoint)
+        }));
+        Assert.Contains("loopback", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

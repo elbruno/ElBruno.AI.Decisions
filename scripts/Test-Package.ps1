@@ -163,10 +163,10 @@ try {
     if ($packagedReadme -cne $sourceReadme) {
         throw 'Packaged README.md must match docs/nuget-readme.md, not the root README. Use the matching release checkout for downloaded artifacts.'
     }
-    if ($Version -ceq '0.5.0') {
+    if ($Version -ceq '0.6.0') {
         foreach ($text in @((Get-Metadata $manifest 'description').InnerText, (Get-Metadata $manifest 'releaseNotes').InnerText, $packagedReadme)) {
             if ($text -notmatch '\btentative\b' -or $text -notmatch '\bunverified\b') {
-                throw 'Tentative 0.5.0 must disclose tentative status and unverified live compatibility in its description, release notes, and README.'
+                throw 'Tentative 0.6.0 must disclose tentative status and unverified live compatibility in its description, release notes, and README.'
             }
         }
     }
