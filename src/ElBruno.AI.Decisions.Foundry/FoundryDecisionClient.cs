@@ -6,10 +6,9 @@ using System.Text.Json.Nodes;
 
 namespace ElBruno.AI.Decisions.Foundry;
 
-/// <summary>Experimental Foundry client using the OpenAI Decisions contract as a provisional reference.</summary>
+/// <summary>Calls Microsoft-Decision-1 through the Microsoft Foundry SystemOne API.</summary>
 /// <remarks>
-/// This is not a confirmed Microsoft-Decision-1 contract. Replace the isolated protocol when official
-/// Foundry documentation is available.
+/// Uses the Microsoft provider route and named TypeSafe-style questions documented in the Foundry launch article.
 /// </remarks>
 public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
 {
@@ -47,11 +46,7 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     {
         DecisionRequestValidation.Choice(input, instructions, options);
         var question = FoundryProtocol.Question("choice", instructions);
-        question["choices"] = new JsonArray([.. options.Select(o => (JsonNode)new JsonObject
-        {
-            ["value"] = o.Key,
-            ["description"] = o.Value
-        })]);
+        question["criteria"] = new JsonObject(options.Select(o => new KeyValuePair<string, JsonNode?>(o.Key, JsonValue.Create(o.Value))));
         JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         Dictionary<string, double> probabilities = FoundryProtocol.Distribution(answer, options.Keys.ToArray());
         string choice = FoundryProtocol.String(answer, "choice");
@@ -65,10 +60,10 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     {
         DecisionRequestValidation.Score(input, instructions, rubric);
         var question = FoundryProtocol.Question("score", instructions);
-        question["levels"] = new JsonArray([.. rubric.Select(text => (JsonNode)new JsonObject { ["label"] = text })]);
+        question["criteria"] = new JsonArray([.. rubric.Select(text => (JsonNode?)JsonValue.Create(text))]);
         JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         string[] indices = Enumerable.Range(0, rubric.Count).Select(i => i.ToString(CultureInfo.InvariantCulture)).ToArray();
-        Dictionary<string, double> probabilities = FoundryProtocol.Distribution(answer, indices, numericValues: true);
+        Dictionary<string, double> probabilities = FoundryProtocol.Distribution(answer, indices);
         var result = new ScoreDecision([.. indices.Select(i => probabilities[i])]);
         if (!answer.TryGetProperty("score", out JsonElement score) || !score.TryGetDouble(out double value) ||
             !double.IsFinite(value) || Math.Abs(value - result.Score) > 1e-6)
@@ -81,8 +76,8 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     public async Task<AssessmentDecision> AssessAsync(string input, string proposition, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Assess(input, proposition);
-        JsonElement answer = await EvaluateAsync(input, FoundryProtocol.Question("predicate", proposition), cancellationToken).ConfigureAwait(false);
-        return new AssessmentDecision(FoundryProtocol.Probability(answer, "probability"));
+        JsonElement answer = await EvaluateAsync(input, FoundryProtocol.Question("noul", proposition), cancellationToken).ConfigureAwait(false);
+        return new AssessmentDecision(FoundryProtocol.Probability(answer, "noul"));
     }
 
     /// <inheritdoc />
@@ -95,15 +90,14 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         string input, JsonObject question, CancellationToken cancellationToken)
     {
         Uri endpoint = _options.Endpoint!;
-        // MAI routing is provisional; the OpenAI specification only supplies the payload contract.
-        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "mai/v1/decisions");
+        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "providers/microsoft/v1/systemone");
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = new StringContent(new JsonObject
             {
                 ["model"] = _options.Model,
-                ["input"] = input,
-                ["questions"] = new JsonArray(question)
+                ["state"] = input,
+                ["questions"] = new JsonObject { ["decision"] = question }
             }.ToJsonString(), Encoding.UTF8, "application/json")
         };
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -167,7 +161,6 @@ internal static class FoundryProtocol
     internal static JsonObject Question(string type, string instructions) => new()
     {
         ["type"] = type,
-        ["name"] = "decision",
         ["instructions"] = instructions
     };
 
@@ -179,14 +172,14 @@ internal static class FoundryProtocol
             JsonElement root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Object ||
                 !root.TryGetProperty("answers", out JsonElement answers) ||
-                answers.ValueKind != JsonValueKind.Array || answers.GetArrayLength() != 1)
+                answers.ValueKind != JsonValueKind.Object || answers.EnumerateObject().Count() != 1 ||
+                !answers.TryGetProperty("decision", out JsonElement answer))
                 throw new DecisionException("Expected exactly one decision answer.");
-            JsonElement answer = answers[0];
             if (answer.ValueKind != JsonValueKind.Object)
                 throw new DecisionException("The decision answer must be an object.");
             string type = String(answer, "type");
             if (type == "refusal") throw new DecisionException("The decision model refused the request.");
-            if (type != expectedType || String(answer, "name") != "decision")
+            if (type != expectedType)
                 throw new DecisionException("The decision answer does not match the requested question.");
             return answer.Clone();
         }
@@ -215,23 +208,15 @@ internal static class FoundryProtocol
         return value;
     }
 
-    internal static Dictionary<string, double> Distribution(JsonElement answer, string[] labels, bool numericValues = false)
+    internal static Dictionary<string, double> Distribution(JsonElement answer, string[] labels)
     {
-        if (!answer.TryGetProperty("probabilities", out JsonElement entries) || entries.ValueKind != JsonValueKind.Array)
+        if (!answer.TryGetProperty("probabilities", out JsonElement entries) || entries.ValueKind != JsonValueKind.Object)
             throw new DecisionException("Missing decision probability distribution.");
         var result = new Dictionary<string, double>(StringComparer.Ordinal);
-        foreach (JsonElement entry in entries.EnumerateArray())
+        foreach (JsonProperty entry in entries.EnumerateObject())
         {
-            string label;
-            if (numericValues)
-            {
-                if (entry.ValueKind != JsonValueKind.Object || !entry.TryGetProperty("value", out JsonElement value) ||
-                    value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int index))
-                    throw new DecisionException("Invalid decision level index.");
-                label = index.ToString(CultureInfo.InvariantCulture);
-            }
-            else label = String(entry, "value");
-            if (!labels.Contains(label, StringComparer.Ordinal) || !result.TryAdd(label, Probability(entry, "probability")))
+            string label = entry.Name;
+            if (!labels.Contains(label, StringComparer.Ordinal) || !result.TryAdd(label, Probability(entries, label)))
                 throw new DecisionException("Unexpected or duplicate decision option.");
         }
         if (result.Count != labels.Length || Math.Abs(result.Values.Sum() - 1) > 1e-6)

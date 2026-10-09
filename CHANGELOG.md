@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Foundry temporarily uses the OpenAI Decisions request/answer contract (choice, score, predicate), with a provisional `/mai/v1/decisions` route for resource roots. Microsoft-Decision-1 is a Microsoft model, not an OpenAI model. Neither route nor payload compatibility is confirmed.
+- Foundry uses the documented `/providers/microsoft/v1/systemone` route and named Choice, Score and Noul questions. Replaces the provisional OpenAI protocol. All three operations passed a live API-key smoke test on October 9, 2026.
 
 - Repository renamed from `ElBruno.AI.Jev` to `ElBruno.AI.Decisions`; the old `ElBruno.AI.Jev` NuGet package is deprecated and a fresh set of packages starts.
 - New core package `ElBruno.AI.Decisions` with `IDecisionClient` and `DecisionRoutingChatClient`.

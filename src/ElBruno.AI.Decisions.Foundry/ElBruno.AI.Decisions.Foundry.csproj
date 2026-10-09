@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>ElBruno.AI.Decisions.Foundry</PackageId>
-    <Description>Microsoft-Decision-1 on Microsoft Foundry for ElBruno.AI.Decisions: fast, calibrated Choice, Score, and Assess decisions. Wire format is unverified against the live service.</Description>
+    <Description>Microsoft-Decision-1 on Microsoft Foundry for ElBruno.AI.Decisions: Choice, Score, and Assess through the Microsoft SystemOne API. Early-access SDK; validate model calibration for your workload.</Description>
     <PackageTags>ai;decision;foundry;microsoft-decision-1;classification;routing;dotnet;tentative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>nuget-icon.png</PackageIcon>

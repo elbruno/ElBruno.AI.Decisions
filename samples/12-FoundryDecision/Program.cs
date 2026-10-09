@@ -3,7 +3,7 @@ using ElBruno.AI.Decisions;
 using ElBruno.AI.Decisions.Foundry;
 using Microsoft.Extensions.Configuration;
 
-// Experimental OpenAI Decisions contract, not confirmed for Microsoft-Decision-1.
+// Microsoft Foundry SystemOne contract.
 // Secrets: Decisions:Foundry:Endpoint (base or full URL), optional ApiKey, deployment name in Model.
 // Set them with scripts/Set-FoundryUserSecrets.ps1. Nothing is read from source code.
 IConfiguration configuration = new ConfigurationBuilder()
@@ -45,28 +45,27 @@ sealed class OfflineHandler : HttpMessageHandler
     {
         string body = await request.Content!.ReadAsStringAsync(cancellationToken);
         using var document = System.Text.Json.JsonDocument.Parse(body);
-        var question = document.RootElement.GetProperty("questions")[0];
+        var question = document.RootElement.GetProperty("questions").GetProperty("decision");
         string type = question.GetProperty("type").GetString()!;
         object answer;
-        if (type == "predicate")
-            answer = new { type, name = "decision", probability = 0.5 };
+        if (type == "noul")
+            answer = new { type, noul = 0.5 };
         else
         {
-            string[] labels = question.GetProperty("choices").EnumerateArray()
-                .Select(option => option.GetProperty("value").GetString()!).ToArray();
+            string[] labels = question.GetProperty("criteria").EnumerateObject()
+                .Select(option => option.Name).ToArray();
             answer = new
             {
                 type,
-                name = "decision",
                 choice = labels[0],
                 confidence = 0.5,
-                probabilities = labels.Select(value => new { value, probability = 1.0 / labels.Length })
+                probabilities = labels.ToDictionary(value => value, _ => 1.0 / labels.Length)
             };
         }
         return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
         {
             Content = new StringContent(
-                System.Text.Json.JsonSerializer.Serialize(new { answers = new[] { answer } }),
+                System.Text.Json.JsonSerializer.Serialize(new { answers = new { decision = answer } }),
                 System.Text.Encoding.UTF8, "application/json")
         };
     }

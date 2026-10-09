@@ -14,12 +14,10 @@ dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
 
 ## Capabilities
 
-The Foundry package is experimental: its provisional implementation follows the
-[OpenAI Decisions specification](https://developers.openai.com/api/docs/guides/decisions),
-not a confirmed Microsoft-Decision-1 contract. Resource roots provisionally use
-`/mai/v1/decisions` (unverified, a live probe returned HTTP 404).
-Microsoft-Decision-1 is a Microsoft model; OpenAI is only the payload reference.
-Do not treat offline tests as live compatibility evidence.
+The Foundry package uses `/providers/microsoft/v1/systemone` and the named
+TypeSafe-style question contract documented by Microsoft. Choice, Score and
+Assess were smoke-tested live with API-key authentication on October 9, 2026.
+This does not establish production readiness or probability calibration.
 
 - Choice classification with full probability distributions and confidence.
 - Score evaluation against ordered rubrics, preserving fractional results and legends.

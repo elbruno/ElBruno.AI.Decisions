@@ -6,7 +6,7 @@ namespace ElBruno.AI.Decisions.Foundry.Tests;
 
 public sealed class FoundryDecisionClientTests
 {
-    private const string PredicateReply = """{"answers":[{"name":"decision","type":"predicate","probability":1}]}""";
+    private const string PredicateReply = """{"answers":{"decision":{"type":"noul","noul":1}}}""";
     private sealed class Credential : Azure.Core.TokenCredential
     {
         public int Calls { get; private set; }
@@ -81,7 +81,7 @@ public sealed class FoundryDecisionClientTests
     }
 
     [Theory]
-    [InlineData("https://example.com/", "https://example.com/mai/v1/decisions")]
+    [InlineData("https://example.com/", "https://example.com/providers/microsoft/v1/systemone")]
     [InlineData("https://example.com/custom?api-version=preview", "https://example.com/custom?api-version=preview")]
     public async Task ResolvesResourceRootButPreservesExplicitUrl(string endpoint, string expected)
     {
@@ -95,14 +95,14 @@ public sealed class FoundryDecisionClientTests
     }
 
     [Theory]
-    [InlineData("""[{"value":"a","probability":0.5},{"value":"a","probability":0.5}]""")]
-    [InlineData("""[{"value":"a","probability":0.5}]""")]
-    [InlineData("""[{"value":"a","probability":0.5},{"value":"c","probability":0.5}]""")]
-    [InlineData("""[{"value":"a","probability":0.2},{"value":"b","probability":0.2}]""")]
+    [InlineData("""{"a":0.5,"a":0.5}""")]
+    [InlineData("""{"a":0.5}""")]
+    [InlineData("""{"a":0.5,"c":0.5}""")]
+    [InlineData("""{"a":0.2,"b":0.2}""")]
     public async Task InvalidChoiceDistributionsAreRejected(string probabilities)
     {
         var (client, _) = Create((_, _) => Json(
-            $$"""{"answers":[{"type":"choice","name":"decision","choice":"a","confidence":0.5,"probabilities":{{probabilities}}}]}"""));
+            """{"answers":{"decision":{"type":"choice","choice":"a","confidence":0.5,"probabilities":""" + probabilities + "}}}"));
         await Assert.ThrowsAsync<DecisionException>(() => client.ChooseAsync("t", "q",
             new Dictionary<string, string?> { ["a"] = null, ["b"] = null }));
     }
@@ -110,7 +110,7 @@ public sealed class FoundryDecisionClientTests
     [Fact]
     public async Task ChooseSendsOptionsAndPicksHighestProbability()
     {
-        var (client, handler) = Create((_, _) => Json("""{"answers":[{"type":"choice","name":"decision","choice":"billing","confidence":0.7,"probabilities":[{"value":"billing","probability":0.8},{"value":"support","probability":0.2}]}]}"""));
+        var (client, handler) = Create((_, _) => Json("""{"answers":{"decision":{"type":"choice","choice":"billing","confidence":0.7,"probabilities":{"billing":0.8,"support":0.2}}}}"""));
 
         ChoiceDecision result = await client.ChooseAsync(
             "refund my order", "Which team?", new Dictionary<string, string?> { ["billing"] = "Payments", ["support"] = null });
@@ -120,16 +120,16 @@ public sealed class FoundryDecisionClientTests
         Assert.Equal(.7, result.Confidence);
         Assert.Equal("test-key", handler.Request!.Headers.GetValues("api-key").Single());
         JsonNode body = JsonNode.Parse(handler.Body!)!;
-        Assert.Equal("refund my order", (string?)body["input"]);
-        Assert.Equal("Which team?", (string?)body["questions"]![0]!["instructions"]);
-        Assert.Equal("choice", (string?)body["questions"]![0]!["type"]);
-        Assert.Equal(2, body["questions"]![0]!["choices"]!.AsArray().Count);
+        Assert.Equal("refund my order", (string?)body["state"]);
+        Assert.Equal("Which team?", (string?)body["questions"]!["decision"]!["instructions"]);
+        Assert.Equal("choice", (string?)body["questions"]!["decision"]!["type"]);
+        Assert.Equal(2, body["questions"]!["decision"]!["criteria"]!.AsObject().Count);
     }
 
     [Fact]
     public async Task ParsesArrayOfLabelAndProbability()
     {
-        var (client, _) = Create((_, _) => Json("""{"answers":[{"type":"choice","name":"decision","choice":"b","confidence":0.4,"probabilities":[{"value":"a","probability":0.6},{"value":"b","probability":0.4}]}]}"""));
+        var (client, _) = Create((_, _) => Json("""{"answers":{"decision":{"type":"choice","choice":"b","confidence":0.4,"probabilities":{"a":0.6,"b":0.4}}}}"""));
 
         ChoiceDecision result = await client.ChooseAsync("t", "q", new Dictionary<string, string?> { ["a"] = null, ["b"] = null });
 
@@ -139,26 +139,26 @@ public sealed class FoundryDecisionClientTests
     [Fact]
     public async Task ScoreMapsLevelsByIndex()
     {
-        var (client, handler) = Create((_, _) => Json("""{"answers":[{"type":"score","name":"decision","score":1.6,"confidence":0.5,"probabilities":[{"value":2,"probability":0.7},{"value":0,"probability":0.1},{"value":1,"probability":0.2}]}]}"""));
+        var (client, handler) = Create((_, _) => Json("""{"answers":{"decision":{"type":"score","score":1.6,"confidence":0.5,"probabilities":{"2":0.7,"0":0.1,"1":0.2}}}}"""));
 
         ScoreDecision result = await client.ScoreAsync("t", "q", ["bad", "ok", "good"]);
 
         Assert.Equal([.1, .2, .7], result.LevelProbabilities);
         Assert.Equal(1.6, result.Score, 6);
         JsonNode body = JsonNode.Parse(handler.Body!)!;
-        Assert.Equal("score", (string?)body["questions"]![0]!["type"]);
-        Assert.Equal("bad", (string?)body["questions"]![0]!["levels"]![0]!["label"]);
+        Assert.Equal("score", (string?)body["questions"]!["decision"]!["type"]);
+        Assert.Equal("bad", (string?)body["questions"]!["decision"]!["criteria"]![0]);
     }
 
     [Fact]
     public async Task AssessReturnsYesProbability()
     {
-        var (client, handler) = Create((_, _) => Json("""{"answers":[{"type":"predicate","name":"decision","probability":0.93}]}"""));
+        var (client, handler) = Create((_, _) => Json("""{"answers":{"decision":{"type":"noul","noul":0.93}}}"""));
 
         AssessmentDecision result = await client.AssessAsync("t", "it is safe");
 
         Assert.Equal(.93, result.Probability);
-        Assert.Equal("predicate", (string?)JsonNode.Parse(handler.Body!)!["questions"]![0]!["type"]);
+        Assert.Equal("noul", (string?)JsonNode.Parse(handler.Body!)!["questions"]!["decision"]!["type"]);
     }
 
     [Fact]
@@ -190,10 +190,10 @@ public sealed class FoundryDecisionClientTests
     [InlineData("not json")]
     [InlineData("""{"probabilities":{"yes":0.5}}""")]
     [InlineData("""{"probabilities":{"yes":2,"no":0}}""")]
-    [InlineData("""{"answers":[{"type":"refusal","name":"decision"}]}""")]
-    [InlineData("""{"answers":[{"type":"predicate","name":"other","probability":0.5}]}""")]
-    [InlineData("""{"answers":[{"type":"predicate","name":"decision","probability":2}]}""")]
-    [InlineData("""{"answers":[{"type":"choice","name":"decision"}]}""")]
+    [InlineData("""{"answers":{"decision":{"type":"refusal"}}}""")]
+    [InlineData("""{"answers":{"other":{"type":"noul","noul":0.5}}}""")]
+    [InlineData("""{"answers":{"decision":{"type":"noul","noul":2}}}""")]
+    [InlineData("""{"answers":{"decision":{"type":"choice"}}}""")]
     public async Task MalformedResponsesAreRejected(string body)
     {
         var (client, _) = Create((_, _) => Json(body));

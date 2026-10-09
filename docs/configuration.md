@@ -109,28 +109,21 @@ The SDK has no native body logging. Applications should also configure HTTP/OTel
 
 ## Foundry and Ollama providers
 
-### Provisional OpenAI Decisions compatibility
+### Microsoft Foundry SystemOne
 
-The Foundry provider temporarily implements the
-[OpenAI Decisions contract](https://developers.openai.com/api/docs/guides/decisions):
-`model`, `input`, and a named `questions` array, with `choice`, `score`, or
-`predicate` questions. It reads typed entries from `answers`, preserves the
-reported choice and choice confidence, and rejects refusals or malformed results.
-Score results use probabilities keyed by zero-based numeric level indices.
+The provider uses the route documented in the
+[Microsoft launch article](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742):
+`/providers/microsoft/v1/systemone`. HTTPS resource roots append this path;
+full invocation URLs are used unchanged. Requests contain `model`, `state`,
+and a named `questions` object. Choice uses a `criteria` map, Score an ordered
+`criteria` list, and Assess a `noul` question. Responses contain a named `answers`
+object. Choice and Score probabilities are maps, and Assess reads `noul`.
+Provider choice and confidence are preserved. Invalid results fail explicitly.
 
-This is an experimental reference implementation, **not an official or verified
-Microsoft-Decision-1 API contract**. An HTTPS resource root provisionally appends
-`/mai/v1/decisions`; a full invocation URL is used unchanged. No automatic
-fallback to other routes or protocols is attempted. Use the deployment name in
-`Decisions:Foundry:Model`. Replace this protocol after Foundry publishes its
-model-specific documentation. Offline fixtures do not verify live compatibility.
-
-Microsoft-Decision-1 is a Microsoft model. OpenAI supplies only the provisional
-payload reference, not the provider routing. The MAI prefix follows an existing
-MAI Thinking deployment's `/mai/v1/chat/completions` route, but the Decisions
-suffix remains a hypothesis. Live probes of both `/openai/v1/decisions` and
-`/mai/v1/decisions` returned HTTP 404 on October 9, 2026. Do not interpret either
-as a supported route or send Decisions payloads to Chat Completions.
+Choice, Score and Assess were verified against a real Microsoft-Decision-1
+deployment with API-key authentication on October 9, 2026. This smoke test does
+not establish calibration or production readiness. Microsoft-Decision-1 is not
+an OpenAI model; the former OpenAI and MAI Decisions routes have been removed.
 
 Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
 `Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
@@ -142,5 +135,5 @@ The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
 use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
 for Azure CLI authentication, and remove any previously configured API key.
 
-- Foundry (experimental): user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`. The OpenAI-based protocol and root URL mapping are provisional, pending official Foundry documentation.
+- Foundry: user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`.
 - Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.
