@@ -46,6 +46,7 @@
     <Project Path="tests/ElBruno.AI.Decisions.Tests/ElBruno.AI.Decisions.Tests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Foundry.Tests/ElBruno.AI.Decisions.Foundry.Tests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Ollama.Tests/ElBruno.AI.Decisions.Ollama.Tests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.IntegrationTests/ElBruno.AI.Decisions.IntegrationTests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Jev.IntegrationTests/ElBruno.AI.Decisions.Jev.IntegrationTests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Jev.Tests/ElBruno.AI.Decisions.Jev.Tests.csproj" />
   </Folder>

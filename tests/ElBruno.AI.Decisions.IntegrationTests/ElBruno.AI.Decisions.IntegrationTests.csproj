@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <UserSecretsId>ElBruno.AI.Decisions.Jev.Development</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <ProjectReference Include="..\..\src\ElBruno.AI.Decisions.Foundry\ElBruno.AI.Decisions.Foundry.csproj" />
+    <ProjectReference Include="..\..\src\ElBruno.AI.Decisions.Ollama\ElBruno.AI.Decisions.Ollama.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>
