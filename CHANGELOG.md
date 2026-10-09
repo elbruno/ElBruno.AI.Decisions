@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-- Correct Ollama to the documented `/v1/systemone` API for local decision models (Ollama v0.35.0+), replacing chat-logprob prompting. Preserve native confidence and probabilities, validate score legends and bounded text requests, and update samples and response examples. This correction is not in the published `0.6.0` packages.
+## 0.6.1 - 2026-10-09 (tentative)
+
+- Correct Ollama to the documented `/v1/systemone` API for local decision models (Ollama v0.35.0+), replacing chat-logprob prompting. Preserve native confidence and probabilities, validate score legends and bounded text requests, and update samples and response examples. Live local decision-model compatibility remains unverified.
+- Share System One protocol validation between Foundry and Ollama.
+- Add provider response examples and README NuGet/download badges.
+
+## Decisions package family 0.6.0 - 2026-10-09 (tentative)
 - Foundry uses the documented `/providers/microsoft/v1/systemone` route and named Choice, Score and Noul questions. Replaces the provisional OpenAI protocol. All three operations passed a live API-key smoke test on October 9, 2026.
 
 - Repository renamed from `ElBruno.AI.Jev` to `ElBruno.AI.Decisions`; a fresh set of packages starts. The old `ElBruno.AI.Jev` NuGet package has not yet been deprecated.

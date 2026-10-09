@@ -23,8 +23,12 @@ builds, CI, and package-consumer checks need no Jev credentials and make no Jev
 service calls. NuGet dependency restore requires network access. Live service
 validation remains necessary before claiming production readiness. The maintainer
 has explicitly authorized **tentative 0.6.0** while live checks are deferred.
+The maintainer also authorized **tentative 0.6.1** on October 9, 2026 to publish
+the native Ollama System One correction. Local Ollama decision-model and Jev
+live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
-live compatibility is unverified. No other suffix-free version is authorized.
+live compatibility is unverified. Suffix-free publication is restricted to
+the explicitly authorized `0.6.0` and `0.6.1` versions.
 
 ## Local package check
 
@@ -66,7 +70,7 @@ The check:
   ignoring UTF-8 BOM and CRLF/LF differences. This preserves the dedicated
   NuGet page instead of accidentally packing the repository README's relative
   hero image. Check downloaded artifacts from their matching release checkout.
-- Requires tentative/unverified notices in the actual 0.6.0 package description,
+- Requires tentative/unverified notices in the actual 0.6.0/0.6.1 package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
   `tests\ElBruno.AI.Decisions.Jev.PackageTests\.work`. Its only SDK dependency is an

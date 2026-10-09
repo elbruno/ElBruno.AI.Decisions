@@ -120,7 +120,7 @@ Assess answer: `{"type":"noul","noul":0.98}`, exposed as
 
 See [Ollama's decision guide](https://docs.ollama.com/capabilities/decision)
 and [API reference](https://docs.ollama.com/api/systemone).
-The native Ollama correction is currently source-only, not in NuGet `0.6.0`.
+The native Ollama correction requires NuGet `0.6.1` or later, not `0.6.0`.
 
 ## Native Jev and advanced scenarios
 

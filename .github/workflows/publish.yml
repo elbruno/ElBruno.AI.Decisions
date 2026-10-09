@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Exact SemVer to validate, for example 0.6.0 (no v prefix)'
+        description: 'Exact SemVer to validate, for example 0.6.1 (no v prefix)'
         required: true
         type: string
       ref:
@@ -14,7 +14,7 @@ on:
         required: true
         type: string
       approve-unverified-publication:
-        description: 'Approve publishing a preview or tentative 0.6.0 despite unverified live Jev compatibility'
+        description: 'Approve publishing a preview or tentative 0.6.0/0.6.1 despite unverified live Jev compatibility'
         required: true
         default: false
         type: boolean
@@ -77,7 +77,7 @@ jobs:
           if ($metadata.VerificationRun) {
             'Public verification only: use the original artifacts, with no rebuild, NuGet publication, or OIDC exchange.' >> $env:GITHUB_STEP_SUMMARY
           } elseif ($publishAllowed -eq 'false') {
-            'Validation only: no NuGet publication or OIDC exchange. An explicitly approved manual preview or tentative 0.6.0 dispatch is required to publish.' >> $env:GITHUB_STEP_SUMMARY
+            'Validation only: no NuGet publication or OIDC exchange. An explicitly approved manual preview or tentative 0.6.0/0.6.1 dispatch is required to publish.' >> $env:GITHUB_STEP_SUMMARY
           } else {
             'Tentative publication explicitly approved. Live Jev compatibility remains unverified; this is not a production-readiness claim.' >> $env:GITHUB_STEP_SUMMARY
           }

@@ -16,7 +16,7 @@ General chat models such as `llama3.2` and cloud models are not supported.
 Local requests need no API key. Choice limits depend on the model (typically
 2-26 options, API maximum 255); the shared Score API supports 2-10 levels.
 Text request bodies must fit within 64 KiB.
-This correction is currently source-only, not in the published NuGet `0.6.0`.
+This correction requires NuGet `0.6.1` or later; it is not in `0.6.0`.
 
 ## Offline
 

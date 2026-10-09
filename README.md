@@ -20,16 +20,16 @@ Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.6.0` is available on NuGet for
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.0),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.0),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.0), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.0).
+**Early access:** version `0.6.1` targets all four NuGet packages:
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.1),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.1),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.1), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.1).
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
-**Ollama correction:** the native System One implementation below is currently
-in source, not in the published `0.6.0` package, which used a chat-logprob approach.
-Use a project reference to the current source until the next package release.
+**Ollama correction:** native System One support requires `0.6.1` or later.
+The published `0.6.0` package used a chat-logprob approach; upgrade before using
+the Ollama example below. Live local decision-model compatibility remains unverified.
 
 ## 1. Foundry: Microsoft-Decision-1
 

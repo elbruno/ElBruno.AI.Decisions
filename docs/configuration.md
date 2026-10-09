@@ -142,5 +142,5 @@ Foundry and Ollama return named `answers.decision` objects. Choice preserves
 the selected label, complete probability map, and separate confidence; Score
 returns the fractional expected zero-based rubric level; Assess reads the
 native numeric `noul` probability. See [example responses](use-cases.md#example-responses).
-Ollama's native System One correction is unreleased; the published `0.6.0`
-Ollama package still uses the previous chat-logprob implementation.
+Ollama's native System One correction requires version `0.6.1` or later;
+the `0.6.0` package uses the previous chat-logprob implementation.

@@ -2,14 +2,14 @@
 
 A community .NET 10 client for the official TypeSafe AI Jev service. It is one provider of the ElBruno.AI.Decisions family, which also includes `ElBruno.AI.Decisions` (provider-neutral `IDecisionClient`), `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1) and `ElBruno.AI.Decisions.Ollama` (local models).
 
-> **Tentative early-access release (0.6.0).** Live service compatibility remains
+> **Tentative early-access release (0.6.1).** Live Jev and local Ollama compatibility remains
 > unverified, and live testing is deferred. Offline test and package validation
 > success does not prove real-service behavior. Evaluate before production use;
-> APIs may change before 1.0. NuGet classifies `0.6.0` as stable because it has
+> APIs may change before 1.0. NuGet classifies `0.6.1` as stable because it has
 > no prerelease suffix, but this package is still explicitly tentative.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.1
 ```
 
 ## Capabilities
@@ -21,7 +21,7 @@ This does not establish production readiness or probability calibration.
 
 The current-source Ollama provider uses `/v1/systemone` with local decision
 models such as `nimble` (Ollama v0.35.0+), not chat models. Its native System One
-correction is unreleased; NuGet `0.6.0` still contains the old chat-logprob path.
+correction requires `0.6.1` or later; `0.6.0` contains the old chat-logprob path.
 It preserves native confidence (distribution concentration) separately from
 label probability. The shared text API exposes one Choice, Score (2-10 ordered
 levels), or Assess question per call; image and batch requests are not exposed.
