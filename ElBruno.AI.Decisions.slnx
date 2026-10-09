@@ -32,10 +32,12 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ElBruno.AI.Decisions/ElBruno.AI.Decisions.csproj" />
+    <Project Path="src/ElBruno.AI.Decisions.Foundry/ElBruno.AI.Decisions.Foundry.csproj" />
     <Project Path="src/ElBruno.AI.Decisions.Jev/ElBruno.AI.Decisions.Jev.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/ElBruno.AI.Decisions.Tests/ElBruno.AI.Decisions.Tests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.Foundry.Tests/ElBruno.AI.Decisions.Foundry.Tests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Jev.IntegrationTests/ElBruno.AI.Decisions.Jev.IntegrationTests.csproj" />
     <Project Path="tests/ElBruno.AI.Decisions.Jev.Tests/ElBruno.AI.Decisions.Jev.Tests.csproj" />
   </Folder>
