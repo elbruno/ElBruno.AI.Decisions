@@ -17,7 +17,9 @@ dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
 The Foundry package is experimental: its provisional implementation follows the
 [OpenAI Decisions specification](https://developers.openai.com/api/docs/guides/decisions),
 not a confirmed Microsoft-Decision-1 contract. Resource roots provisionally use
-`/openai/v1/decisions`. Do not treat offline tests as live compatibility evidence.
+`/mai/v1/decisions` (unverified, a live probe returned HTTP 404).
+Microsoft-Decision-1 is a Microsoft model; OpenAI is only the payload reference.
+Do not treat offline tests as live compatibility evidence.
 
 - Choice classification with full probability distributions and confidence.
 - Score evaluation against ordered rubrics, preserving fractional results and legends.

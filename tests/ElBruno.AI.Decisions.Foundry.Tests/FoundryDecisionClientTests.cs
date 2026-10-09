@@ -81,7 +81,7 @@ public sealed class FoundryDecisionClientTests
     }
 
     [Theory]
-    [InlineData("https://example.com/", "https://example.com/openai/v1/decisions")]
+    [InlineData("https://example.com/", "https://example.com/mai/v1/decisions")]
     [InlineData("https://example.com/custom?api-version=preview", "https://example.com/custom?api-version=preview")]
     public async Task ResolvesResourceRootButPreservesExplicitUrl(string endpoint, string expected)
     {

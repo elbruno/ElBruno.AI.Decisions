@@ -3,7 +3,7 @@ namespace ElBruno.AI.Decisions.Foundry;
 /// <summary>Settings for a Microsoft-Decision-1 deployment on Microsoft Foundry.</summary>
 public sealed class FoundryDecisionOptions
 {
-    /// <summary>Gets or sets the HTTPS resource root or full invocation URL. Roots provisionally append openai/v1/decisions.</summary>
+    /// <summary>Gets or sets the HTTPS resource root or full invocation URL. Roots provisionally append mai/v1/decisions.</summary>
     public Uri? Endpoint { get; set; }
 
     /// <summary>Gets or sets an optional API key. When absent, authentication uses Azure CLI credentials.</summary>

@@ -120,10 +120,17 @@ Score results use probabilities keyed by zero-based numeric level indices.
 
 This is an experimental reference implementation, **not an official or verified
 Microsoft-Decision-1 API contract**. An HTTPS resource root provisionally appends
-`/openai/v1/decisions`; a full invocation URL is used unchanged. No automatic
+`/mai/v1/decisions`; a full invocation URL is used unchanged. No automatic
 fallback to other routes or protocols is attempted. Use the deployment name in
 `Decisions:Foundry:Model`. Replace this protocol after Foundry publishes its
 model-specific documentation. Offline fixtures do not verify live compatibility.
+
+Microsoft-Decision-1 is a Microsoft model. OpenAI supplies only the provisional
+payload reference, not the provider routing. The MAI prefix follows an existing
+MAI Thinking deployment's `/mai/v1/chat/completions` route, but the Decisions
+suffix remains a hypothesis. Live probes of both `/openai/v1/decisions` and
+`/mai/v1/decisions` returned HTTP 404 on October 9, 2026. Do not interpret either
+as a supported route or send Decisions payloads to Chat Completions.
 
 Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
 `Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.

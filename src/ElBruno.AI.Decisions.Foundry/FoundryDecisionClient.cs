@@ -95,8 +95,8 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         string input, JsonObject question, CancellationToken cancellationToken)
     {
         Uri endpoint = _options.Endpoint!;
-        // Foundry resource roots provisionally use the OpenAI-compatible Decisions route.
-        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "openai/v1/decisions");
+        // MAI routing is provisional; the OpenAI specification only supplies the payload contract.
+        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "mai/v1/decisions");
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = new StringContent(new JsonObject
