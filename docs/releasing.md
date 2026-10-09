@@ -1,8 +1,11 @@
 # Building, checking, and releasing the package
 
-Version `0.6.0` of all four packages was published and verified from the public
-NuGet feed on October 9, 2026. Foundry Choice, Score and Assess were also
-smoke-tested live with API-key authentication; live Jev compatibility remains
+Version `0.6.1` of all four packages was published and verified from the public
+NuGet feed on October 9, 2026, including an exact-version consumer restore
+against the validated release artifacts. See the successful
+[publication workflow](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38001591148).
+Foundry Choice, Score and Assess were also smoke-tested live with API-key
+authentication; live local Ollama decision-model and Jev compatibility remain
 unverified.
 
 The release contains four packages: `ElBruno.AI.Decisions`,
@@ -54,7 +57,7 @@ For an explicitly selected version, pass the **same** override to pack and
 the package check; do not use `--no-build` against assemblies of another version:
 
 ```powershell
-$version = '0.6.0'
+$version = '0.6.1'
 dotnet pack $library --configuration Release --output $packages "-p:Version=$version"
 .\scripts\Test-Package.ps1 -PackageDirectory $packages -Version $version
 ```
