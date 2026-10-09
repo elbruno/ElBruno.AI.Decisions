@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Repository renamed from `ElBruno.AI.Jev` to `ElBruno.AI.Decisions`; the old `ElBruno.AI.Jev` NuGet package is deprecated and a fresh set of packages starts.
+- New core package `ElBruno.AI.Decisions` with `IDecisionClient` and `DecisionRoutingChatClient`.
+- Jev SDK moved to `ElBruno.AI.Decisions.Jev` with an `IDecisionClient` adapter.
+- New `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1; wire format unverified, opt-in live test) and `ElBruno.AI.Decisions.Ollama` (logprob based) providers.
+- Samples 11 (Ollama) and 12 (Foundry).
+
 ## 0.5.0 - 2026-09-22 (tentative)
 
 First public release, explicitly authorized for early evaluation while live

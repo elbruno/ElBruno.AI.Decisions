@@ -11,6 +11,29 @@
 
 ![ElBruno.AI.Decisions.Jev: typed decisions for Jev AI on .NET 10](images/repo-hero.png)
 
+## ElBruno.AI.Decisions: one API, three decision providers
+
+This repository was renamed from `ElBruno.AI.Jev`. It now offers a provider-neutral `IDecisionClient` (Choose, Score, Assess) with probabilities instead of free text, and three interchangeable providers:
+
+| Package | Provider | Notes |
+| --- | --- | --- |
+| `ElBruno.AI.Decisions` | Core abstractions | `IDecisionClient`, result types, `DecisionRoutingChatClient` (Microsoft.Extensions.AI) |
+| `ElBruno.AI.Decisions.Jev` | TypeSafe AI Jev | The original SDK, plus an `IDecisionClient` adapter |
+| `ElBruno.AI.Decisions.Foundry` | Microsoft-Decision-1 on Microsoft Foundry | Wire format **unverified** until a live test; isolated in `FoundryProtocol` |
+| `ElBruno.AI.Decisions.Ollama` | Local Ollama models | Probabilities from first-token logprobs; calibration depends on the model (small models are weakly calibrated) |
+
+```csharp
+IDecisionClient client = new OllamaDecisionClient(new OllamaDecisionOptions { Model = "llama3.2" });
+ChoiceDecision route = await client.ChooseAsync(
+    "Please correct the invoice for my order.",
+    "Which team should handle this request?",
+    new Dictionary<string, string?> { ["billing"] = "Invoices", ["support"] = "Technical support" });
+```
+
+See `samples/11-OllamaLocal` and `samples/12-FoundryDecision`. The old `ElBruno.AI.Jev` NuGet package is deprecated in favor of these packages. The rest of this page documents the Jev provider.
+
+---
+
 A community-maintained **.NET 10** client for the **official TypeSafe AI Jev API**. Evaluate **Choice**, **Score**, and **Noul** questions, preserve uncertainty, discover models, and compose decisions with **Microsoft.Extensions.AI**.
 
 > This is not an official TypeSafe AI SDK. The provider is `https://api.typesafe.ai`, documented at [docs.typesafe.ai](https://docs.typesafe.ai/). The independent `jevtypesafeai.com` proxy has different credentials and endpoints and is not supported.
