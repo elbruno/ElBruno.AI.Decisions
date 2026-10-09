@@ -3,7 +3,7 @@
 Sets the official TypeSafe Jev API key for every sample and live integration test.
 .DESCRIPTION
 Prompts for a masked key and passes JSON through standard input to Secret Manager.
-All projects share ElBruno.AI.Jev.Development. Other secrets are preserved.
+All projects share ElBruno.AI.Decisions.Jev.Development. Other secrets are preserved.
 User-secrets are stored outside the repository but are not encrypted.
 #>
 [CmdletBinding(SupportsShouldProcess = $true)]
@@ -11,7 +11,7 @@ param()
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$storeId = 'ElBruno.AI.Jev.Development'
+$storeId = 'ElBruno.AI.Decisions.Jev.Development'
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     throw 'Install the .NET 10 SDK before configuring user-secrets.'

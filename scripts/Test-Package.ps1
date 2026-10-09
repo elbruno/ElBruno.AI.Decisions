@@ -14,7 +14,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path $PSScriptRoot -Parent
-$packageId = 'ElBruno.AI.Jev'
+$packageId = 'ElBruno.AI.Decisions.Jev'
 $consumerRoot = Join-Path (Join-Path $repositoryRoot 'tests') "$packageId.PackageTests"
 
 if ([string]::IsNullOrWhiteSpace($Version)) {

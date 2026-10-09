@@ -13,9 +13,9 @@
     <Authors>Bruno Capuano (ElBruno)</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/elbruno/ElBruno.AI.Jev</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/elbruno/ElBruno.AI.Jev</PackageProjectUrl>
-    <PackageReleaseNotes>Tentative early-access release. Live Jev compatibility remains unverified; evaluate before production use. See https://github.com/elbruno/ElBruno.AI.Jev/blob/main/CHANGELOG.md.</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/elbruno/ElBruno.AI.Decisions</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/elbruno/ElBruno.AI.Decisions</PackageProjectUrl>
+    <PackageReleaseNotes>Tentative early-access release. Live Jev compatibility remains unverified; evaluate before production use. See https://github.com/elbruno/ElBruno.AI.Decisions/blob/main/CHANGELOG.md.</PackageReleaseNotes>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

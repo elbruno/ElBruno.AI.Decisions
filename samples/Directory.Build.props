@@ -2,10 +2,10 @@
   <Import Project="..\Directory.Build.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <UserSecretsId>ElBruno.AI.Jev.Development</UserSecretsId>
+    <UserSecretsId>ElBruno.AI.Decisions.Jev.Development</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\ElBruno.AI.Jev\ElBruno.AI.Jev.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\ElBruno.AI.Decisions.Jev\ElBruno.AI.Decisions.Jev.csproj" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <Compile Include="$(MSBuildThisFileDirectory)Shared\SampleConfiguration.cs" Link="SampleConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Shared\OfflineJevHandler.cs" Link="OfflineJevHandler.cs" />

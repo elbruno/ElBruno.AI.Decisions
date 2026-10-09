@@ -1,4 +1,4 @@
-# ElBruno.AI.Jev
+# ElBruno.AI.Decisions.Jev
 
 A community .NET 10 client for the official TypeSafe AI Jev service.
 
@@ -9,7 +9,7 @@ A community .NET 10 client for the official TypeSafe AI Jev service.
 > no prerelease suffix, but this package is still explicitly tentative.
 
 ```powershell
-dotnet add package ElBruno.AI.Jev --version 0.5.0
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.5.0
 ```
 
 ## Capabilities
@@ -26,7 +26,7 @@ Jev is not a generative chat or embedding service. This package does not invent 
 ## Quickstart
 
 ```csharp
-using ElBruno.AI.Jev;
+using ElBruno.AI.Decisions.Jev;
 
 using var client = new JevClient(new JevClientOptions
 {
@@ -48,5 +48,5 @@ Microsoft.Extensions.AI integrations wrap your own chat clients; a Jev credentia
 Official service documentation: https://docs.typesafe.ai/
 
 The maintainer has authorized this tentative release before live verification.
-See [the project repository](https://github.com/elbruno/ElBruno.AI.Jev) for runnable
+See [the project repository](https://github.com/elbruno/ElBruno.AI.Decisions) for runnable
 samples, configuration, tests, known limitations, and release instructions.

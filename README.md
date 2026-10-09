@@ -1,15 +1,15 @@
-# ElBruno.AI.Jev
+# ElBruno.AI.Decisions.Jev
 
-[![NuGet version](https://img.shields.io/nuget/v/ElBruno.AI.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Jev)
-[![NuGet downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Jev)
-[![CI](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml)
-[![Release pipeline](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/publish.yml)
+[![NuGet version](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev)
+[![NuGet downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev)
+[![CI](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml)
+[![Release pipeline](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/publish.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![License: MIT](https://img.shields.io/github/license/elbruno/ElBruno.AI.Jev)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/elbruno/ElBruno.AI.Decisions.Jev)](LICENSE)
 [![Status: tentative](https://img.shields.io/badge/status-tentative-orange)](CHANGELOG.md)
 [![Live API: unverified](https://img.shields.io/badge/live_API-unverified-orange)](docs/testing.md)
 
-![ElBruno.AI.Jev: typed decisions for Jev AI on .NET 10](images/repo-hero.png)
+![ElBruno.AI.Decisions.Jev: typed decisions for Jev AI on .NET 10](images/repo-hero.png)
 
 A community-maintained **.NET 10** client for the **official TypeSafe AI Jev API**. Evaluate **Choice**, **Score**, and **Noul** questions, preserve uncertainty, discover models, and compose decisions with **Microsoft.Extensions.AI**.
 
@@ -36,7 +36,7 @@ Use the **.NET 10 SDK**. The repository pins the 10.0.4xx feature band in `globa
 Install the tentative version:
 
 ```powershell
-dotnet add package ElBruno.AI.Jev --version 0.5.0
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.5.0
 ```
 
 To build and consume the local package instead, follow the [release guide](docs/releasing.md).
@@ -44,7 +44,7 @@ To build and consume the local package instead, follow the [release guide](docs/
 ## First decision
 
 ```csharp
-using ElBruno.AI.Jev;
+using ElBruno.AI.Decisions.Jev;
 
 // Read credentials from application configuration, not source code.
 using var client = new JevClient(new JevClientOptions
@@ -134,8 +134,8 @@ Read [decision semantics](docs/decisions.md), [errors and retries](docs/errors-a
 ## Development
 
 ```powershell
-dotnet build ElBruno.AI.Jev.slnx -c Release
-dotnet test ElBruno.AI.Jev.slnx -c Release --no-build
+dotnet build ElBruno.AI.Decisions.slnx -c Release
+dotnet test ElBruno.AI.Decisions.slnx -c Release --no-build
 ```
 
 Normal tests require no Jev credentials. Live tests are separately opt-in, use synthetic inputs, and have a documented request budget.

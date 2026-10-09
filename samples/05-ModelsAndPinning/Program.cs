@@ -1,4 +1,4 @@
-using ElBruno.AI.Jev;
+using ElBruno.AI.Decisions.Jev;
 using Jev.Samples;
 
 return await SampleConfiguration.RunAsync(args, async (client, cancellationToken) =>

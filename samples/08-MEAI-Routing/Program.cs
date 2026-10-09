@@ -1,5 +1,5 @@
-using ElBruno.AI.Jev;
-using ElBruno.AI.Jev.ExtensionsAI;
+using ElBruno.AI.Decisions.Jev;
+using ElBruno.AI.Decisions.Jev.ExtensionsAI;
 using Jev.Samples;
 using Microsoft.Extensions.AI;
 

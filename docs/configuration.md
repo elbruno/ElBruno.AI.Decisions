@@ -4,14 +4,14 @@ The SDK targets **official TypeSafe AI**, defaulting to `https://api.typesafe.ai
 
 ## Development
 
-All samples and the live integration-test project share `UserSecretsId` **ElBruno.AI.Jev.Development**:
+All samples and the live integration-test project share `UserSecretsId` **ElBruno.AI.Decisions.Jev.Development**:
 
 ```powershell
 .\scripts\Set-JevUserSecrets.ps1
 dotnet user-secrets set "Jev:DefaultModel" "jev-1.13.0" --project samples\01-HelloChoice
 ```
 
-The setup script prompts for a masked key and sends JSON to `dotnet user-secrets set --id ElBruno.AI.Jev.Development` through standard input. It sets only `Jev:ApiKey`, preserving the existing model and other settings. Run it once for all ten samples and live integration tests; `-WhatIf` previews the target without prompting or writing anything.
+The setup script prompts for a masked key and sends JSON to `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` through standard input. It sets only `Jev:ApiKey`, preserving the existing model and other settings. Run it once for all ten samples and live integration tests; `-WhatIf` previews the target without prompting or writing anything.
 
 Never put the key in chat, source, command arguments, or test recordings. User-secrets are outside the repository, but **are not encrypted** and are only for development. A plaintext representation is necessarily created briefly in process memory to pass it to Secret Manager. The library itself never loads user-secrets or environment variables.
 

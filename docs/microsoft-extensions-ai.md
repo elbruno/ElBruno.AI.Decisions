@@ -1,6 +1,6 @@
 # Microsoft.Extensions.AI composition
 
-`ElBruno.AI.Jev.ExtensionsAI` composes official Jev decisions with **real, separately configured chat providers**. A Jev credential does not enable generative chat, embeddings, images, audio, native tool calls, or service-side streaming.
+`ElBruno.AI.Decisions.Jev.ExtensionsAI` composes official Jev decisions with **real, separately configured chat providers**. A Jev credential does not enable generative chat, embeddings, images, audio, native tool calls, or service-side streaming.
 
 The package uses the stable `IChatClient`, `DelegatingChatClient`, `AIFunction`, `ChatClientBuilder`, and stream aggregation contracts from Microsoft.Extensions.AI 10.10.0. Microsoft's `RoutingChatClient` is experimental in that version; this package instead implements its routing wrapper against stable `IChatClient`, without experimental-warning suppression.
 
@@ -9,8 +9,8 @@ The package uses the stable `IChatClient`, `DelegatingChatClient`, `AIFunction`,
 The application owns the model, questions, instructions, and tool name. Only textual `state` is exposed as a tool argument; models and policies cannot be overridden through extra arguments.
 
 ```csharp
-using ElBruno.AI.Jev;
-using ElBruno.AI.Jev.ExtensionsAI;
+using ElBruno.AI.Decisions.Jev;
+using ElBruno.AI.Decisions.Jev.ExtensionsAI;
 using Microsoft.Extensions.AI;
 
 var priority = new JevQuestionKey<JevChoiceAnswer>("priority");
@@ -158,7 +158,7 @@ foreach (JevChatDecisionMetadata item in JevChatMetadata.GetDecisions(answer.Add
 }
 ```
 
-The reserved key is `JevChatMetadata.PropertyName` (`ElBruno.AI.Jev.Decisions`). Nested wrappers append to a read-only metadata list rather than overwriting earlier decisions. Incompatible values under this reserved key are errors. Response model IDs, usage, finish reasons, messages, and raw provider metadata remain the **chat provider's**, not Jev's. No combined token total or fabricated chat-provider identity is reported.
+The reserved key is `JevChatMetadata.PropertyName` (`ElBruno.AI.Decisions.Jev.Decisions`). Nested wrappers append to a read-only metadata list rather than overwriting earlier decisions. Incompatible values under this reserved key are errors. Response model IDs, usage, finish reasons, messages, and raw provider metadata remain the **chat provider's**, not Jev's. No combined token total or fabricated chat-provider identity is reported.
 
 The router resolves itself and `IJevDecisionClient` through unkeyed `GetService`. A string route label resolves a registered route's services, for example `router.GetService(typeof(ChatClientMetadata), "Fast")`. Unkeyed provider metadata is deliberately absent because no route has been selected. Assessment middleware delegates ordinary service discovery to its real inner client and exposes its decision client unkeyed.
 

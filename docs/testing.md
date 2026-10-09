@@ -3,8 +3,8 @@
 ## Offline suite
 
 ```powershell
-dotnet build ElBruno.AI.Jev.slnx -c Release
-dotnet test ElBruno.AI.Jev.slnx -c Release --no-build
+dotnet build ElBruno.AI.Decisions.slnx -c Release
+dotnet test ElBruno.AI.Decisions.slnx -c Release --no-build
 dotnet run --project samples\03-ParallelDecisions -c Release --no-build -- --offline
 ```
 
@@ -20,9 +20,9 @@ Configure the shared development store locally:
 
 ```powershell
 .\scripts\Set-JevUserSecrets.ps1
-dotnet user-secrets set "Jev:DefaultModel" "jev-1.13.0" --project tests\ElBruno.AI.Jev.IntegrationTests
+dotnet user-secrets set "Jev:DefaultModel" "jev-1.13.0" --project tests\ElBruno.AI.Decisions.Jev.IntegrationTests
 $env:JEV_RUN_LIVE = "1"
-dotnet test tests\ElBruno.AI.Jev.IntegrationTests -c Release
+dotnet test tests\ElBruno.AI.Decisions.Jev.IntegrationTests -c Release
 Remove-Item Env:JEV_RUN_LIVE
 ```
 

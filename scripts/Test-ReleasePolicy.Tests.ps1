@@ -11,7 +11,7 @@ function Assert-ReleasePolicy {
     $failure = $null
     $result = $null
     try {
-        $result = & $policy -Repository 'elbruno/ElBruno.AI.Jev' @Inputs
+        $result = & $policy -Repository 'elbruno/ElBruno.AI.Decisions.Jev' @Inputs
     }
     catch {
         $failure = $_.Exception.Message
@@ -22,7 +22,7 @@ function Assert-ReleasePolicy {
         }
     }
     elseif ($failure -or $result.Version -cne $ExpectedVersion -or $result.PublishAllowed -ne $ExpectedPublish -or
-        $result.RepositoryUrl -cne 'https://github.com/elbruno/ElBruno.AI.Jev' -or $result.VerificationRun -cne $ExpectedVerificationRun) {
+        $result.RepositoryUrl -cne 'https://github.com/elbruno/ElBruno.AI.Decisions' -or $result.VerificationRun -cne $ExpectedVerificationRun) {
         throw "Unexpected release policy result: $failure"
     }
     $script:passed++

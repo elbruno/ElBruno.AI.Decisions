@@ -28,7 +28,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-ElBruno.AI.Jev
+  group: publish-ElBruno.AI.Decisions.Jev
   cancel-in-progress: false
 
 env:
@@ -118,20 +118,20 @@ jobs:
       - name: Restore, build, formatting, offline tests, and coverage
         run: |
           $properties = @("-p:Version=$env:PACKAGE_VERSION", "-p:RepositoryUrl=$env:REPOSITORY_URL", "-p:RepositoryCommit=$env:RELEASE_COMMIT")
-          dotnet restore ElBruno.AI.Jev.slnx @properties
+          dotnet restore ElBruno.AI.Decisions.slnx @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet build ElBruno.AI.Jev.slnx --configuration Release --no-restore @properties
+          dotnet build ElBruno.AI.Decisions.slnx --configuration Release --no-restore @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet format ElBruno.AI.Jev.slnx --verify-no-changes --no-restore
+          dotnet format ElBruno.AI.Decisions.slnx --verify-no-changes --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\scripts\Test-Coverage.Tests.ps1
           & .\scripts\Test-ReleasePolicy.Tests.ps1
-          $tests = (Resolve-Path .\tests\ElBruno.AI.Jev.Tests\ElBruno.AI.Jev.Tests.csproj).Path
+          $tests = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.Tests\ElBruno.AI.Decisions.Jev.Tests.csproj).Path
           $results = Join-Path (Join-Path $PWD artifacts) coverage
           dotnet test $tests --configuration Release --no-build --no-restore --settings coverage.runsettings --collect 'XPlat Code Coverage' --logger trx --results-directory $results @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\scripts\Test-Coverage.ps1 -ReportDirectory $results
-          $integration = (Resolve-Path .\tests\ElBruno.AI.Jev.IntegrationTests\ElBruno.AI.Jev.IntegrationTests.csproj).Path
+          $integration = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.IntegrationTests\ElBruno.AI.Decisions.Jev.IntegrationTests.csproj).Path
           dotnet test $integration --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) integration) @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile and run every sample without calling services
@@ -146,7 +146,7 @@ jobs:
           }
       - name: Pack exact release and verify Source Link and consumer
         run: |
-          $project = (Resolve-Path .\src\ElBruno.AI.Jev\ElBruno.AI.Jev.csproj).Path
+          $project = (Resolve-Path .\src\ElBruno.AI.Decisions.Jev\ElBruno.AI.Decisions.Jev.csproj).Path
           $packages = Join-Path (Join-Path $PWD artifacts) packages
           $properties = @("-p:Version=$env:PACKAGE_VERSION", "-p:RepositoryUrl=$env:REPOSITORY_URL", "-p:RepositoryCommit=$env:RELEASE_COMMIT",
             "-p:PackageProjectUrl=$env:REPOSITORY_URL", "-p:PackageReleaseNotes=Tentative early-access SDK $env:PACKAGE_VERSION. Live Jev compatibility is unverified. Evaluate before production use. See $env:REPOSITORY_URL/releases.")
@@ -204,13 +204,13 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
-          $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "ElBruno.AI.Jev.$env:PACKAGE_VERSION.nupkg"
+          $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "ElBruno.AI.Decisions.Jev.$env:PACKAGE_VERSION.nupkg"
           dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify public indexing and exact restored package
         run: |
           & .\scripts\Test-Package.ps1 -PackageDirectory (Join-Path (Join-Path $PWD artifacts) packages) -Version $env:PACKAGE_VERSION -RequireSourceLink -ExpectedRepositoryUrl $env:REPOSITORY_URL -UsePublicFeed -IndexAttempts 20 -IndexDelaySeconds 60
-          "Verified ElBruno.AI.Jev $env:PACKAGE_VERSION from public NuGet using a fresh isolated cache and offline consumer." >> $env:GITHUB_STEP_SUMMARY
+          "Verified ElBruno.AI.Decisions.Jev $env:PACKAGE_VERSION from public NuGet using a fresh isolated cache and offline consumer." >> $env:GITHUB_STEP_SUMMARY
 
   verify-public:
     needs: prepare
@@ -248,10 +248,10 @@ jobs:
           github-token: ${{ github.token }}
       - name: Match original package to the requested source revision
         run: |
-          $path = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "ElBruno.AI.Jev.$env:PACKAGE_VERSION.nupkg"
+          $path = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "ElBruno.AI.Decisions.Jev.$env:PACKAGE_VERSION.nupkg"
           $archive = [IO.Compression.ZipFile]::OpenRead($path)
           try {
-            $entry = $archive.GetEntry('ElBruno.AI.Jev.nuspec')
+            $entry = $archive.GetEntry('ElBruno.AI.Decisions.Jev.nuspec')
             if ($null -eq $entry) { throw 'Missing package manifest.' }
             $stream = $entry.Open()
             try {
@@ -271,4 +271,4 @@ jobs:
       - name: Verify public indexing and original package without republishing
         run: |
           & .\scripts\Test-Package.ps1 -PackageDirectory (Join-Path (Join-Path $PWD artifacts) packages) -Version $env:PACKAGE_VERSION -RequireSourceLink -ExpectedRepositoryUrl $env:REPOSITORY_URL -UsePublicFeed -IndexAttempts 20 -IndexDelaySeconds 60
-          "Verified public ElBruno.AI.Jev $env:PACKAGE_VERSION against original artifacts from run $env:PUBLICATION_RUN. No package was rebuilt or republished." >> $env:GITHUB_STEP_SUMMARY
+          "Verified public ElBruno.AI.Decisions.Jev $env:PACKAGE_VERSION against original artifacts from run $env:PUBLICATION_RUN. No package was rebuilt or republished." >> $env:GITHUB_STEP_SUMMARY

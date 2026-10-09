@@ -23,8 +23,8 @@ $document.Load($reports[0].FullName)
 $coverage = $document.DocumentElement
 if ($coverage.Name -ne 'coverage') { throw 'Expected a Cobertura coverage document.' }
 $packages = @($coverage.SelectNodes('packages/package'))
-if ($packages.Count -ne 1 -or $packages[0].GetAttribute('name') -ne 'ElBruno.AI.Jev') {
-    throw 'Coverage must measure only the ElBruno.AI.Jev assembly; unrelated modules must not inflate the totals.'
+if ($packages.Count -ne 1 -or $packages[0].GetAttribute('name') -ne 'ElBruno.AI.Decisions.Jev') {
+    throw 'Coverage must measure only the ElBruno.AI.Decisions.Jev assembly; unrelated modules must not inflate the totals.'
 }
 
 $culture = [System.Globalization.CultureInfo]::InvariantCulture

@@ -153,7 +153,7 @@ function New-Banner {
         $graphics.FillRectangle($tealBrush, $margin, $accentY, 56, 5)
         $graphics.FillRectangle($violetBrush, ($margin + 64), $accentY, 24, 5)
         Draw-Text $graphics 'COMMUNITY SDK' 18 $margin ($accentY + 31) $textWidth $muted -Strong
-        Draw-Text $graphics 'ElBruno.AI.Jev' $titleSize ($margin - 4) $titleY $textWidth $white -Strong
+        Draw-Text $graphics 'ElBruno.AI.Decisions.Jev' $titleSize ($margin - 4) $titleY $textWidth $white -Strong
         Draw-Text $graphics 'Typed decisions for Jev AI' $taglineSize $margin $taglineY $textWidth $muted
 
         $graphics.FillRectangle($badgeBrush, $margin, $badgeY, 148, 48)

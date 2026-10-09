@@ -17,11 +17,11 @@ the matching `10.0.4xx` feature band.
 From the repository root:
 
 ```powershell
-dotnet restore ElBruno.AI.Jev.slnx
-dotnet build ElBruno.AI.Jev.slnx --configuration Release --no-restore
-dotnet format ElBruno.AI.Jev.slnx --verify-no-changes --no-restore
+dotnet restore ElBruno.AI.Decisions.slnx
+dotnet build ElBruno.AI.Decisions.slnx --configuration Release --no-restore
+dotnet format ElBruno.AI.Decisions.slnx --verify-no-changes --no-restore
 
-$library = (Resolve-Path .\src\ElBruno.AI.Jev\ElBruno.AI.Jev.csproj).Path
+$library = (Resolve-Path .\src\ElBruno.AI.Decisions.Jev\ElBruno.AI.Decisions.Jev.csproj).Path
 $packages = Join-Path (Join-Path $PWD artifacts) packages
 dotnet pack $library --configuration Release --output $packages
 .\scripts\Test-Package.ps1 -PackageDirectory $packages
@@ -51,11 +51,11 @@ The check:
 - Requires tentative/unverified notices in the actual 0.5.0 package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
-  `tests\ElBruno.AI.Jev.PackageTests\.work`. Its only SDK dependency is an
+  `tests\ElBruno.AI.Decisions.Jev.PackageTests\.work`. Its only SDK dependency is an
   **exact-version PackageReference**, never a ProjectReference. Do not add this
   unreleased-package-dependent project to the solution.
 - Creates an explicit NuGet configuration with only the local package directory
-  and nuget.org; source mapping restricts `ElBruno.AI.Jev` to the local directory.
+  and nuget.org; source mapping restricts `ElBruno.AI.Decisions.Jev` to the local directory.
   Separate package, HTTP, and plugin caches prevent machine-cache false positives.
 - Restores, builds, and runs the consumer, checking the packaged assembly's hash,
   assembly/file/informational versions, and matching portable-PDB identity.
@@ -79,7 +79,7 @@ full prerelease and may append a source commit after `+`.
 | `-PackageDirectory` | Existing directory holding both exact-version package artifacts; defaults to `artifacts\packages`. |
 | `-Version` | Exact SemVer; defaults to the repository's version property. |
 | `-RequireSourceLink` | Requires actual repository metadata, project URL/release notes, immutable commit, and matching Source Link mappings in the symbol PDB. |
-| `-ExpectedRepositoryUrl` | Use the confirmed `https://github.com/elbruno/ElBruno.AI.Jev` identity; required with `-RequireSourceLink`. |
+| `-ExpectedRepositoryUrl` | Use the confirmed `https://github.com/elbruno/ElBruno.AI.Decisions` identity; required with `-RequireSourceLink`. |
 | `-UsePublicFeed` | Restores the exact package **only from public nuget.org**, with a new isolated cache for each attempt; still compares its DLL with the validated local artifact. |
 | `-IndexAttempts` | Bounded public restore attempts, 1–20; default 10. Local feed checks make one attempt. |
 | `-IndexDelaySeconds` | Delay between public restore failures, 1–60 seconds; default 30. |
@@ -88,7 +88,7 @@ full prerelease and may append a source commit after `+`.
 
 ```powershell
 $env:JEV_RUN_LIVE = '0'
-$tests = (Resolve-Path .\tests\ElBruno.AI.Jev.Tests\ElBruno.AI.Jev.Tests.csproj).Path
+$tests = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.Tests\ElBruno.AI.Decisions.Jev.Tests.csproj).Path
 $results = Join-Path (Join-Path $PWD artifacts) ("coverage-" + [Guid]::NewGuid().ToString('N'))
 dotnet test $tests --configuration Release --no-build --no-restore `
     --settings coverage.runsettings --collect 'XPlat Code Coverage' `
@@ -158,7 +158,7 @@ Source Link, and isolated-consumer checks. The release override is applied
 consistently during restore, build, pack, and consumer verification.
 
 The public repository is confirmed as
-[elbruno/ElBruno.AI.Jev](https://github.com/elbruno/ElBruno.AI.Jev), with
+[elbruno/ElBruno.AI.Decisions.Jev](https://github.com/elbruno/ElBruno.AI.Decisions), with
 `main` as the default workflow branch. Manual dispatch requires the workflow
 to exist on that branch.
 
@@ -179,7 +179,7 @@ username (`elbruno`), not an API key. No long-lived NuGet API key is needed.
 ### Existing trusted-publishing policy
 
 The existing NuGet trusted-publishing policy was successfully used to publish
-**`ElBruno.AI.Jev` 0.5.0**. **Reuse it; do not create a duplicate.** The OIDC
+**`ElBruno.AI.Decisions.Jev` 0.5.0**. **Reuse it; do not create a duplicate.** The OIDC
 exchange and first package/symbol push succeeded. `NUGET_USER` is now configured
 in the protected `release` environment; the original publication used the same
 secret name at repository scope. Before changing the publishing configuration,
@@ -189,7 +189,7 @@ verify:
 - The allowed workflow filename matches **`publish.yml`**.
 - Its optional environment restriction agrees with **`release`**.
 - The configured `NUGET_USER` matches the existing policy's intended **NuGet account**.
-- Its first-publication scope allows the exact package ID `ElBruno.AI.Jev`.
+- Its first-publication scope allows the exact package ID `ElBruno.AI.Decisions.Jev`.
 
 If those existing fields differ, adapt the workflow or obtain approval for the
 smallest required policy change before running an authorized release. Also verify
