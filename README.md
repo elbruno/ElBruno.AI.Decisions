@@ -1,166 +1,143 @@
-# ElBruno.AI.Decisions.Jev
+# ElBruno.AI.Decisions
 
-[![NuGet version](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev)
-[![NuGet downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev)
-[![CI](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml)
-[![Release pipeline](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/publish.yml)
+[![CI](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![License: MIT](https://img.shields.io/github/license/elbruno/ElBruno.AI.Decisions.Jev)](LICENSE)
-[![Status: tentative](https://img.shields.io/badge/status-tentative-orange)](CHANGELOG.md)
-[![Live API: unverified](https://img.shields.io/badge/live_API-unverified-orange)](docs/testing.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-![ElBruno.AI.Decisions.Jev: typed decisions for Jev AI on .NET 10](images/repo-hero.png)
+One .NET API for **classification, routing, rubric scoring, and proposition
+assessment**, with probability distributions instead of generated text.
+Start with Microsoft-Decision-1 on **Foundry**, run models locally with
+**Ollama**, or use the native **Jev** SDK.
 
-## ElBruno.AI.Decisions: one API, three decision providers
+| Package | Role |
+| --- | --- |
+| `ElBruno.AI.Decisions` | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
+| `ElBruno.AI.Decisions.Foundry` | Microsoft-Decision-1 through Microsoft's SystemOne endpoint |
+| `ElBruno.AI.Decisions.Ollama` | Local decisions from first-token log probabilities |
+| `ElBruno.AI.Decisions.Jev` | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-This repository was renamed from `ElBruno.AI.Jev`. It now offers a provider-neutral `IDecisionClient` (Choose, Score, Assess) with probabilities instead of free text, and three interchangeable providers:
+**Early access:** these new package IDs are being prepared for publication.
+See [release status and instructions](docs/releasing.md) before installing.
+The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
+The GitHub repository rename is also pending.
 
-| Package | Provider | Notes |
-| --- | --- | --- |
-| `ElBruno.AI.Decisions` | Core abstractions | `IDecisionClient`, result types, `DecisionRoutingChatClient` (Microsoft.Extensions.AI) |
-| `ElBruno.AI.Decisions.Jev` | TypeSafe AI Jev | The original SDK, plus an `IDecisionClient` adapter |
-| `ElBruno.AI.Decisions.Foundry` | Experimental Microsoft Foundry adapter | Temporarily uses [OpenAI Decisions](https://developers.openai.com/api/docs/guides/decisions) as a reference; Microsoft-Decision-1 compatibility **unverified** |
-| `ElBruno.AI.Decisions.Ollama` | Local Ollama models | Probabilities from first-token logprobs; calibration depends on the model (small models are weakly calibrated) |
+## 1. Foundry: Microsoft-Decision-1
 
-```csharp
-IDecisionClient client = new OllamaDecisionClient(new OllamaDecisionOptions { Model = "llama3.2" });
-ChoiceDecision route = await client.ChooseAsync(
-    "Please correct the invoice for my order.",
-    "Which team should handle this request?",
-    new Dictionary<string, string?> { ["billing"] = "Invoices", ["support"] = "Technical support" });
-```
-
-See `samples/11-OllamaLocal` and `samples/12-FoundryDecision`. The old `ElBruno.AI.Jev` NuGet package is deprecated in favor of these packages. The rest of this page documents the Jev provider.
-
----
-
-A community-maintained **.NET 10** client for the **official TypeSafe AI Jev API**. Evaluate **Choice**, **Score**, and **Noul** questions, preserve uncertainty, discover models, and compose decisions with **Microsoft.Extensions.AI**.
-
-> This is not an official TypeSafe AI SDK. The provider is `https://api.typesafe.ai`, documented at [docs.typesafe.ai](https://docs.typesafe.ai/). The independent `jevtypesafeai.com` proxy has different credentials and endpoints and is not supported.
-
-> **Tentative 0.6.0 release:** intended for early evaluation, not a claim of production readiness. Offline tests, samples, and package-consumer checks pass, but **live Jev compatibility remains unverified** and live testing is deferred. Validate the service and your application before production use; APIs may change before 1.0.
->
-> The exact version `0.6.0` has no prerelease suffix, so NuGet lists it in its stable version channel. **That classification does not change its tentative status.**
-
-## Why Jev?
-
-| Primitive | Use it for | Preserve |
-| --- | --- | --- |
-| Choice | Choosing among explicit labels | Winner, every option's probability, server confidence |
-| Score | Evaluating an ordered 2-10 level rubric | Fractional expected rubric position, distribution, structured legend |
-| Noul | Assessing whether a proposition is true | A probability in [0,1], not an automatically thresholded boolean |
-
-Evaluate several independent questions against the same text or structured JSON state in one request. Jev is **not a text-generation or embedding model**. It has no documented native streaming, image, audio, or realtime endpoint.
-
-## Requirements and installation
-
-Use the **.NET 10 SDK**. The repository pins the 10.0.4xx feature band in `global.json`.
-
-Install the tentative version:
-
-```powershell
-dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
-```
-
-To build and consume the local package instead, follow the [release guide](docs/releasing.md).
-
-## First decision
+Reference package: `ElBruno.AI.Decisions.Foundry`.
+With `using ElBruno.AI.Decisions.Foundry;`, these five lines classify a request:
 
 ```csharp
-using ElBruno.AI.Decisions.Jev;
-
-// Read credentials from application configuration, not source code.
-using var client = new JevClient(new JevClientOptions
-{
-    ApiKey = configuration["Jev:ApiKey"]
-        ?? throw new InvalidOperationException("Configure Jev:ApiKey."),
-    DefaultModel = JevModels.Version1_13_0
-});
-
-var category = new JevQuestionKey<JevChoiceAnswer>("category");
-var request = new JevDecisionRequest("Please correct the invoice for my order.")
-    .WithQuestion(category, new JevChoiceQuestion(
-        "Choose the team that should handle this request.",
-        new Dictionary<string, string?>
-        {
-            ["billing"] = "Invoices, payments, and refunds",
-            ["support"] = "Technical support",
-            ["other"] = "None of these teams applies"
-        }));
-
-JevDecisionResponse response = await client.EvaluateAsync(request, cancellationToken);
-JevChoiceAnswer answer = response.GetAnswer(category);
-Console.WriteLine($"{answer.Choice}: confidence {answer.Confidence:F3}");
+var options = new FoundryDecisionOptions { Endpoint = new Uri("https://<resource>.services.ai.azure.com"), Model = "<deployment-name>" };
+using var client = new FoundryDecisionClient(options);
+var teams = new Dictionary<string, string?> { ["billing"] = "Invoices and payments", ["support"] = "Technical problems" };
+var result = await client.ChooseAsync("Please correct my invoice.", "Which team should handle this request?", teams);
+Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
-`configuration` and `cancellationToken` come from the consuming application. The [Hello Choice sample](samples/01-HelloChoice/README.md) is a complete runnable version.
+**URL template:** `https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone`.
+Resource roots automatically append that path; full invocation URLs are used
+unchanged. **Model:** use your deployment name (for example, `msft-decision-1`),
+not necessarily the catalog model name `Microsoft-Decision-1`.
 
-## Try the samples without credentials
+The example uses `AzureCliCredential` after `az login`. Set `options.ApiKey`
+from configuration to use key authentication instead; a supplied key takes
+precedence. Never hardcode credentials.
+
+Choice, Score and Assess passed a live API-key smoke test on October 9, 2026.
+That does not prove calibration or production readiness.
+See the [complete Foundry sample](samples/12-FoundryDecision/README.md),
+[configuration and user secrets](docs/configuration.md#foundry-and-ollama-providers),
+and [Microsoft's endpoint example](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742).
+
+## 2. Ollama: local decisions
+
+Reference package: `ElBruno.AI.Decisions.Ollama`.
+Start Ollama and pull a model, for example `ollama pull llama3.2`.
+With `using ElBruno.AI.Decisions.Ollama;`, the same task takes five lines:
+
+```csharp
+var options = new OllamaDecisionOptions { Endpoint = new Uri("http://localhost:11434/"), Model = "llama3.2" };
+using var client = new OllamaDecisionClient(options);
+var teams = new Dictionary<string, string?> { ["billing"] = "Invoices and payments", ["support"] = "Technical problems" };
+var result = await client.ChooseAsync("Please correct my invoice.", "Which team should handle this request?", teams);
+Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
+```
+
+**URL template:** `http://<ollama-host>:11434/` (the client calls `/api/chat`).
+**Model:** an installed Ollama model name. Your server/model must return token
+logprobs. Choices support up to 26 options, mapped to letters.
+Probabilities are normalized across those letters; they are **not equivalent to
+the calibrated probabilities of a dedicated decision model**.
+
+See the [complete Ollama sample](samples/11-OllamaLocal/README.md) and
+[provider configuration](docs/configuration.md#foundry-and-ollama-providers).
+
+## 3. Jev: native decisions and advanced composition
+
+Reference package: `ElBruno.AI.Decisions.Jev`. The native SDK preserves typed
+question handles, structured JSON state, multiple questions per request, model
+discovery, metadata, and Choice/Score/Noul results. `JevDecisionClientAdapter`
+exposes the shared `IDecisionClient` API; `AddJev` registers it for DI.
+
+Official TypeSafe endpoint: `https://api.typesafe.ai`.
+Configure `Jev:ApiKey` using [user secrets](docs/configuration.md).
+This community SDK is not an official TypeSafe SDK; the independent
+`jevtypesafeai.com` proxy is not supported. Live TypeSafe compatibility remains
+unverified. Loopback-only local Laya inference is also supported by the Jev SDK.
+
+Start with [Hello Choice](samples/01-HelloChoice/README.md), then
+[Score and Noul](samples/02-ScoreAndNoul/README.md) and
+[dependency injection](samples/06-DependencyInjection/README.md).
+
+## Use cases and runnable examples
+
+The shared API provides `ChooseAsync`, `ScoreAsync`, and `AssessAsync`.
+Read the [use-case guide](docs/use-cases.md) for examples in Foundry, Ollama,
+and Jev order, and [decision semantics](docs/decisions.md) for native Jev details.
+
+| Use case | Examples and documentation |
+| --- | --- |
+| Support classification and routing | [Foundry](samples/12-FoundryDecision/README.md), [Ollama](samples/11-OllamaLocal/README.md), [Jev Choice](samples/01-HelloChoice/README.md) |
+| Quality grading and proposition assessment | [Shared API guide](docs/use-cases.md), [Jev Score/Noul](samples/02-ScoreAndNoul/README.md) |
+| Multiple questions against shared evidence | [Parallel decisions](samples/03-ParallelDecisions/README.md) |
+| Structured JSON input | [Structured state](samples/04-StructuredState/README.md) |
+| Model discovery and pinning | [Jev models](samples/05-ModelsAndPinning/README.md) |
+| Dependency injection and HTTP ownership | [DI sample](samples/06-DependencyInjection/README.md), [configuration](docs/configuration.md) |
+| Decision tools for chat agents | [MEAI tools](samples/07-MEAI-Tools/README.md), [integration guide](docs/microsoft-extensions-ai.md) |
+| Route to separately configured chat models | [MEAI routing](samples/08-MEAI-Routing/README.md), shared `DecisionRoutingChatClient` |
+| Review chat inputs or buffered outputs | [MEAI assessments](samples/09-MEAI-Assessments/README.md) |
+| RAG relevance and reranking | [RAG sample](samples/10-RagReranking/README.md) |
+
+Samples 01-10 use the native Jev SDK. Samples 11-12 use the shared API.
+Do not assume native Jev features such as model discovery exist in every provider.
+
+## Run without credentials
 
 ```powershell
+dotnet run --project samples\12-FoundryDecision -- --offline
+dotnet run --project samples\11-OllamaLocal -- --offline
 dotnet run --project samples\01-HelloChoice -- --offline
-dotnet run --project samples\03-ParallelDecisions -- --offline
 ```
 
-`--offline` is explicit and uses labeled, synthetic HTTP responses. It does **not** evaluate a model or demonstrate model quality. Missing live credentials never silently select offline mode.
+`--offline` uses explicitly labeled synthetic HTTP fixtures, not a model.
+Missing credentials never silently select offline mode.
+See [live and offline testing](docs/testing.md).
 
-To configure actual calls later:
+## Limits and development
 
-```powershell
-.\scripts\Set-JevUserSecrets.ps1
-dotnet run --project samples\01-HelloChoice
-```
+Confidence is not correctness. Assessments are not guaranteed prompt-injection
+protection. Calibrate automation thresholds on representative data and retain
+human review for consequential decisions. The providers do not generate chat;
+Microsoft.Extensions.AI routing wraps separately supplied chat clients.
+Jev retry/transport policies are described in [errors and retries](docs/errors-and-retries.md)
+and do not imply identical behavior in Foundry or Ollama.
 
-The script prompts for a masked key and passes it through standard input, not command arguments. Samples and integration tests share one development `UserSecretsId`, so running it once configures all of them. **Do not paste the real key into chat or commit it.** User-secrets are outside the repository but are not an encrypted production vault. See [configuration](docs/configuration.md).
-
-## Microsoft.Extensions.AI
-
-This package composes Jev decisions with Microsoft's abstractions rather than pretending Jev generates chat:
-
-| Surface | Support |
-| --- | --- |
-| `AIFunction` | Expose explicitly configured decision operations as tools |
-| `IChatClient` routing | Select among caller-registered real chat clients |
-| `DelegatingChatClient` assessments | Assess inputs or buffer and review outputs before returning them |
-| Builders, function invocation, caching, telemetry | Compose with standard Microsoft.Extensions.AI middleware |
-| Native chat / embeddings / image / speech / files / realtime | Not supported by the documented Jev service |
-
-The Jev key enables decisions, not another provider's generative model. Chat integration samples use clearly labeled deterministic chat clients. See [Microsoft.Extensions.AI integration](docs/microsoft-extensions-ai.md).
-
-## Samples
-
-| Sample | Scenario |
-| --- | --- |
-| [01 Hello Choice](samples/01-HelloChoice/README.md) | Minimal classification and uncertainty |
-| [02 Score and Noul](samples/02-ScoreAndNoul/README.md) | Rubric scoring versus proposition probability |
-| [03 Parallel Decisions](samples/03-ParallelDecisions/README.md) | Multiple primitives against one shared state |
-| [04 Structured State](samples/04-StructuredState/README.md) | Structured JSON and explicit serialization metadata |
-| [05 Models and Pinning](samples/05-ModelsAndPinning/README.md) | Discovery and resolved versions |
-| [06 Dependency Injection](samples/06-DependencyInjection/README.md) | Generic Host, options, HTTP ownership |
-| [07 MEAI Tools](samples/07-MEAI-Tools/README.md) | A decision as an AI function |
-| [08 MEAI Routing](samples/08-MEAI-Routing/README.md) | Explicit route selection |
-| [09 MEAI Assessments](samples/09-MEAI-Assessments/README.md) | Input/output review semantics |
-| [10 RAG Reranking](samples/10-RagReranking/README.md) | Bounded concurrent relevance assessments |
-
-## Reliability and honest limits
-
-- Immutable requests and owned JSON values; safe concurrent calls.
-- Cancellation across HTTP, response reads, and retry waits; a total deadline.
-- Default retries only for 429 and 529. Ambiguous network failures and other 5xx require explicit replay opt-in and may be billed.
-- Bounded responses, per-request credentials, disabled redirects on owned/factory transports, and no automatic provider fallback.
-- No keys, prompts, or error bodies in default SDK messages. Raw native data and opt-in error bodies can still be sensitive.
-- Moving model aliases remain supported; pinned IDs need not appear in discovery.
-- Confidence is not correctness, Noul is not severity, and assessments are **not guaranteed prompt-injection protection**.
-
-Read [decision semantics](docs/decisions.md), [errors and retries](docs/errors-and-retries.md), and [testing](docs/testing.md).
-
-## Development
+Use the .NET 10 SDK pinned by `global.json`:
 
 ```powershell
 dotnet build ElBruno.AI.Decisions.slnx -c Release
 dotnet test ElBruno.AI.Decisions.slnx -c Release --no-build
 ```
 
-Normal tests require no Jev credentials. Live tests are separately opt-in, use synthetic inputs, and have a documented request budget.
-
-See [contributing](CONTRIBUTING.md), [release preparation](docs/releasing.md), and [image provenance](images/README.md). Licensed under [MIT](LICENSE).
+See [contributing](CONTRIBUTING.md), [release preparation](docs/releasing.md),
+and [image provenance](images/README.md). Licensed under [MIT](LICENSE).
