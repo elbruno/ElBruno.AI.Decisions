@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Foundry temporarily uses the OpenAI Decisions request/answer contract (choice, score, predicate), with a provisional `/openai/v1/decisions` route for resource roots. This is not confirmed Microsoft-Decision-1 compatibility.
+
 - Repository renamed from `ElBruno.AI.Jev` to `ElBruno.AI.Decisions`; the old `ElBruno.AI.Jev` NuGet package is deprecated and a fresh set of packages starts.
 - New core package `ElBruno.AI.Decisions` with `IDecisionClient` and `DecisionRoutingChatClient`.
 - Jev SDK moved to `ElBruno.AI.Decisions.Jev` with an `IDecisionClient` adapter.

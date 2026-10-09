@@ -19,7 +19,7 @@ This repository was renamed from `ElBruno.AI.Jev`. It now offers a provider-neut
 | --- | --- | --- |
 | `ElBruno.AI.Decisions` | Core abstractions | `IDecisionClient`, result types, `DecisionRoutingChatClient` (Microsoft.Extensions.AI) |
 | `ElBruno.AI.Decisions.Jev` | TypeSafe AI Jev | The original SDK, plus an `IDecisionClient` adapter |
-| `ElBruno.AI.Decisions.Foundry` | Microsoft-Decision-1 on Microsoft Foundry | Wire format **unverified** until a live test; isolated in `FoundryProtocol` |
+| `ElBruno.AI.Decisions.Foundry` | Experimental Microsoft Foundry adapter | Temporarily uses [OpenAI Decisions](https://developers.openai.com/api/docs/guides/decisions) as a reference; Microsoft-Decision-1 compatibility **unverified** |
 | `ElBruno.AI.Decisions.Ollama` | Local Ollama models | Probabilities from first-token logprobs; calibration depends on the model (small models are weakly calibrated) |
 
 ```csharp

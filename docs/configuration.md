@@ -109,6 +109,22 @@ The SDK has no native body logging. Applications should also configure HTTP/OTel
 
 ## Foundry and Ollama providers
 
+### Provisional OpenAI Decisions compatibility
+
+The Foundry provider temporarily implements the
+[OpenAI Decisions contract](https://developers.openai.com/api/docs/guides/decisions):
+`model`, `input`, and a named `questions` array, with `choice`, `score`, or
+`predicate` questions. It reads typed entries from `answers`, preserves the
+reported choice and choice confidence, and rejects refusals or malformed results.
+Score results use probabilities keyed by zero-based numeric level indices.
+
+This is an experimental reference implementation, **not an official or verified
+Microsoft-Decision-1 API contract**. An HTTPS resource root provisionally appends
+`/openai/v1/decisions`; a full invocation URL is used unchanged. No automatic
+fallback to other routes or protocols is attempted. Use the deployment name in
+`Decisions:Foundry:Model`. Replace this protocol after Foundry publishes its
+model-specific documentation. Offline fixtures do not verify live compatibility.
+
 Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
 `Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
 `Decisions:Foundry:ApiKey` is optional: when supplied it takes precedence;
@@ -119,5 +135,5 @@ The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
 use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
 for Azure CLI authentication, and remove any previously configured API key.
 
-- Foundry (Microsoft-Decision-1): user-secrets keys `Decisions:Foundry:Endpoint` (full HTTPS scoring URL), `Decisions:Foundry:ApiKey`, optional `Decisions:Foundry:Model` and `Decisions:Foundry:ApiKeyHeader`. Set them with `scripts/Set-FoundryUserSecrets.ps1`. The wire format is unverified until a live run.
+- Foundry (experimental): user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`. The OpenAI-based protocol and root URL mapping are provisional, pending official Foundry documentation.
 - Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.

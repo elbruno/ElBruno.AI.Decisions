@@ -21,7 +21,7 @@ if (-not $PSCmdlet.ShouldProcess($storeId, 'Set Decisions:Foundry:* for samples 
     return
 }
 
-$endpoint = Read-Host 'Enter the full HTTPS scoring URL of the Foundry deployment'
+$endpoint = Read-Host 'Enter the HTTPS resource root or full invocation URL (experimental OpenAI Decisions protocol)'
 if ($endpoint -notmatch '^https://\S+$') {
     throw 'The endpoint must be an HTTPS URL without whitespace. No secret was changed.'
 }

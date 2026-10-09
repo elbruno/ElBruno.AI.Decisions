@@ -6,11 +6,10 @@ using System.Text.Json.Nodes;
 
 namespace ElBruno.AI.Decisions.Foundry;
 
-/// <summary>Calls Microsoft-Decision-1 on Foundry. Score and Assess are expressed as fixed-option decisions.</summary>
+/// <summary>Experimental Foundry client using the OpenAI Decisions contract as a provisional reference.</summary>
 /// <remarks>
-/// The request and response shapes live in this class only. They follow the public description of the model
-/// (a situation, a question, and fixed options in; a calibrated probability per option out) and must be
-/// confirmed against a live deployment.
+/// This is not a confirmed Microsoft-Decision-1 contract. Replace the isolated protocol when official
+/// Foundry documentation is available.
 /// </remarks>
 public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
 {
@@ -47,10 +46,17 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         string input, string instructions, IReadOnlyDictionary<string, string?> options, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Choice(input, instructions, options);
-        Dictionary<string, double> probabilities = await ScoreOptionsAsync(
-            input, instructions, options.Select(o => (o.Key, o.Value)).ToArray(), cancellationToken).ConfigureAwait(false);
-        string choice = probabilities.MaxBy(p => p.Value).Key;
-        return new ChoiceDecision(choice, probabilities);
+        var question = FoundryProtocol.Question("choice", instructions);
+        question["choices"] = new JsonArray([.. options.Select(o => (JsonNode)new JsonObject
+        {
+            ["value"] = o.Key,
+            ["description"] = o.Value
+        })]);
+        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        Dictionary<string, double> probabilities = FoundryProtocol.Distribution(answer, options.Keys.ToArray());
+        string choice = FoundryProtocol.String(answer, "choice");
+        if (!probabilities.ContainsKey(choice)) throw new DecisionException("The decision choice is not a supplied option.");
+        return new ChoiceDecision(choice, probabilities, FoundryProtocol.Probability(answer, "confidence"));
     }
 
     /// <inheritdoc />
@@ -58,19 +64,25 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         string input, string instructions, IReadOnlyList<string> rubric, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Score(input, instructions, rubric);
-        var levels = rubric.Select((text, i) => (i.ToString(CultureInfo.InvariantCulture), (string?)text)).ToArray();
-        Dictionary<string, double> probabilities = await ScoreOptionsAsync(input, instructions, levels, cancellationToken).ConfigureAwait(false);
-        return new ScoreDecision([.. levels.Select(l => probabilities[l.Item1])]);
+        var question = FoundryProtocol.Question("score", instructions);
+        question["levels"] = new JsonArray([.. rubric.Select(text => (JsonNode)new JsonObject { ["label"] = text })]);
+        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        string[] indices = Enumerable.Range(0, rubric.Count).Select(i => i.ToString(CultureInfo.InvariantCulture)).ToArray();
+        Dictionary<string, double> probabilities = FoundryProtocol.Distribution(answer, indices, numericValues: true);
+        var result = new ScoreDecision([.. indices.Select(i => probabilities[i])]);
+        if (!answer.TryGetProperty("score", out JsonElement score) || !score.TryGetDouble(out double value) ||
+            !double.IsFinite(value) || Math.Abs(value - result.Score) > 1e-6)
+            throw new DecisionException("The decision score does not match its level probabilities.");
+        FoundryProtocol.Probability(answer, "confidence");
+        return result;
     }
 
     /// <inheritdoc />
     public async Task<AssessmentDecision> AssessAsync(string input, string proposition, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Assess(input, proposition);
-        (string, string?)[] yesNo = [("yes", null), ("no", null)];
-        Dictionary<string, double> probabilities = await ScoreOptionsAsync(
-            input, $"Is the following statement true? {proposition}", yesNo, cancellationToken).ConfigureAwait(false);
-        return new AssessmentDecision(probabilities["yes"]);
+        JsonElement answer = await EvaluateAsync(input, FoundryProtocol.Question("predicate", proposition), cancellationToken).ConfigureAwait(false);
+        return new AssessmentDecision(FoundryProtocol.Probability(answer, "probability"));
     }
 
     /// <inheritdoc />
@@ -79,12 +91,20 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         if (_ownsHttp) _http.Dispose();
     }
 
-    private async Task<Dictionary<string, double>> ScoreOptionsAsync(
-        string situation, string question, (string Label, string? Description)[] options, CancellationToken cancellationToken)
+    private async Task<JsonElement> EvaluateAsync(
+        string input, JsonObject question, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, _options.Endpoint)
+        Uri endpoint = _options.Endpoint!;
+        // Foundry resource roots provisionally use the OpenAI-compatible Decisions route.
+        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "openai/v1/decisions");
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
-            Content = new StringContent(FoundryProtocol.BuildRequest(_options.Model, situation, question, options), Encoding.UTF8, "application/json")
+            Content = new StringContent(new JsonObject
+            {
+                ["model"] = _options.Model,
+                ["input"] = input,
+                ["questions"] = new JsonArray(question)
+            }.ToJsonString(), Encoding.UTF8, "application/json")
         };
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(_options.Timeout);
@@ -123,7 +143,7 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             throw new DecisionException("The Foundry request failed.", ex);
         }
 
-        return FoundryProtocol.ParseProbabilities(body, options.Select(o => o.Label).ToArray());
+        return FoundryProtocol.Answer(body, question["type"]!.GetValue<string>());
     }
 
     private static async Task<string> ReadBoundedAsync(HttpResponseMessage response, CancellationToken cancellationToken)
@@ -144,85 +164,78 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
 
 internal static class FoundryProtocol
 {
-    internal static string BuildRequest(string model, string situation, string question, (string Label, string? Description)[] options)
+    internal static JsonObject Question(string type, string instructions) => new()
     {
-        var root = new JsonObject
-        {
-            ["model"] = model,
-            ["situation"] = situation,
-            ["question"] = question,
-            ["options"] = new JsonArray([.. options.Select(o => (JsonNode)new JsonObject
-            {
-                ["label"] = o.Label,
-                ["description"] = o.Description
-            })])
-        };
-        return root.ToJsonString();
-    }
+        ["type"] = type,
+        ["name"] = "decision",
+        ["instructions"] = instructions
+    };
 
-    internal static Dictionary<string, double> ParseProbabilities(string body, string[] labels)
+    internal static JsonElement Answer(string body, string expectedType)
     {
-        JsonNode? root;
         try
         {
-            root = JsonNode.Parse(body);
+            using JsonDocument document = JsonDocument.Parse(body);
+            JsonElement root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("answers", out JsonElement answers) ||
+                answers.ValueKind != JsonValueKind.Array || answers.GetArrayLength() != 1)
+                throw new DecisionException("Expected exactly one decision answer.");
+            JsonElement answer = answers[0];
+            if (answer.ValueKind != JsonValueKind.Object)
+                throw new DecisionException("The decision answer must be an object.");
+            string type = String(answer, "type");
+            if (type == "refusal") throw new DecisionException("The decision model refused the request.");
+            if (type != expectedType || String(answer, "name") != "decision")
+                throw new DecisionException("The decision answer does not match the requested question.");
+            return answer.Clone();
         }
         catch (JsonException ex)
         {
             throw new DecisionException("The Foundry response was not valid JSON.", ex);
         }
 
-        var found = new Dictionary<string, double>(StringComparer.Ordinal);
-        Collect(root, found);
+    }
+
+    internal static string String(JsonElement element, string property)
+    {
+        if (element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out JsonElement value) || value.ValueKind != JsonValueKind.String ||
+            string.IsNullOrWhiteSpace(value.GetString()))
+            throw new DecisionException($"Missing or invalid decision field '{property}'.");
+        return value.GetString()!;
+    }
+
+    internal static double Probability(JsonElement element, string property)
+    {
+        if (element.ValueKind != JsonValueKind.Object ||
+            !element.TryGetProperty(property, out JsonElement node) || node.ValueKind != JsonValueKind.Number ||
+            !node.TryGetDouble(out double value) || !double.IsFinite(value) || value is < 0 or > 1)
+            throw new DecisionException($"Missing or invalid decision probability '{property}'.");
+        return value;
+    }
+
+    internal static Dictionary<string, double> Distribution(JsonElement answer, string[] labels, bool numericValues = false)
+    {
+        if (!answer.TryGetProperty("probabilities", out JsonElement entries) || entries.ValueKind != JsonValueKind.Array)
+            throw new DecisionException("Missing decision probability distribution.");
         var result = new Dictionary<string, double>(StringComparer.Ordinal);
-        foreach (string label in labels)
+        foreach (JsonElement entry in entries.EnumerateArray())
         {
-            if (!found.TryGetValue(label, out double p) || !double.IsFinite(p) || p is < 0 or > 1)
+            string label;
+            if (numericValues)
             {
-                throw new DecisionException($"The Foundry response has no valid probability for option '{label}'.");
+                if (entry.ValueKind != JsonValueKind.Object || !entry.TryGetProperty("value", out JsonElement value) ||
+                    value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out int index))
+                    throw new DecisionException("Invalid decision level index.");
+                label = index.ToString(CultureInfo.InvariantCulture);
             }
-
-            result[label] = p;
+            else label = String(entry, "value");
+            if (!labels.Contains(label, StringComparer.Ordinal) || !result.TryAdd(label, Probability(entry, "probability")))
+                throw new DecisionException("Unexpected or duplicate decision option.");
         }
-
+        if (result.Count != labels.Length || Math.Abs(result.Values.Sum() - 1) > 1e-6)
+            throw new DecisionException("The decision probabilities must cover all options and sum to one.");
         return result;
-    }
-
-    // Accepts {"probabilities":{label:p}} and arrays of {label|option|name|choice, probability|score|confidence}, nested anywhere.
-    private static void Collect(JsonNode? node, Dictionary<string, double> found)
-    {
-        switch (node)
-        {
-            case JsonObject obj:
-                if (obj["probabilities"] is JsonObject map)
-                {
-                    foreach ((string key, JsonNode? value) in map)
-                    {
-                        if (TryNumber(value, out double p)) found[key] = p;
-                    }
-                }
-
-                string? label = new[] { "label", "option", "name", "choice" }
-                    .Select(k => obj[k] is JsonValue v && v.TryGetValue(out string? s) ? s : null).FirstOrDefault(s => s is not null);
-                if (label is not null)
-                {
-                    foreach (string k in new[] { "probability", "score", "confidence" })
-                    {
-                        if (TryNumber(obj[k], out double p)) { found[label] = p; break; }
-                    }
-                }
-
-                foreach ((_, JsonNode? child) in obj) Collect(child, found);
-                break;
-            case JsonArray array:
-                foreach (JsonNode? child in array) Collect(child, found);
-                break;
-        }
-    }
-
-    private static bool TryNumber(JsonNode? node, out double value)
-    {
-        value = 0;
-        return node is JsonValue v && v.TryGetValue(out value);
     }
 }
