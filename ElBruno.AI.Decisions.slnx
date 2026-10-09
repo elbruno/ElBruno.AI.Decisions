@@ -30,6 +30,12 @@
   <Folder Name="/samples/10-RagReranking/">
     <Project Path="samples/10-RagReranking/RagReranking.csproj" />
   </Folder>
+  <Folder Name="/samples/11-OllamaLocal/">
+    <Project Path="samples/11-OllamaLocal/OllamaLocal.csproj" />
+  </Folder>
+  <Folder Name="/samples/12-FoundryDecision/">
+    <Project Path="samples/12-FoundryDecision/FoundryDecision.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/ElBruno.AI.Decisions/ElBruno.AI.Decisions.csproj" />
     <Project Path="src/ElBruno.AI.Decisions.Foundry/ElBruno.AI.Decisions.Foundry.csproj" />

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ElBruno.AI.Decisions.Foundry\ElBruno.AI.Decisions.Foundry.csproj" />
+  </ItemGroup>
+</Project>
