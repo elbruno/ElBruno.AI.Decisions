@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>ElBruno.AI.Decisions.Foundry</PackageId>
+    <Description>Microsoft-Decision-1 on Microsoft Foundry for ElBruno.AI.Decisions: Choice, Score, and Assess through the Microsoft SystemOne API. Early-access SDK; validate model calibration for your workload.</Description>
+    <PackageTags>ai;decision;foundry;microsoft-decision-1;classification;routing;dotnet;tentative</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
+    <ProjectReference Include="..\ElBruno.AI.Decisions\ElBruno.AI.Decisions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\docs\nuget-readme.md" Pack="true" PackagePath="\README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\images\nuget-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

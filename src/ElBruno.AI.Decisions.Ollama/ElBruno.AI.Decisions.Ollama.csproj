@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>ElBruno.AI.Decisions.Ollama</PackageId>
+    <Description>Local Ollama models for ElBruno.AI.Decisions: fast, calibrated Choice, Score, and Assess decisions. Probabilities come from token log-probabilities, so calibration depends on the model.</Description>
+    <PackageTags>ai;decision;ollama;local;offline;classification;routing;dotnet;tentative</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ElBruno.AI.Decisions\ElBruno.AI.Decisions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\docs\nuget-readme.md" Pack="true" PackagePath="\README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\images\nuget-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

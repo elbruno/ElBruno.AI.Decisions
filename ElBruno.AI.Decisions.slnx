@@ -1,0 +1,53 @@
+<Solution>
+  <Folder Name="/samples/" />
+  <Folder Name="/samples/01-HelloChoice/">
+    <Project Path="samples/01-HelloChoice/HelloChoice.csproj" />
+  </Folder>
+  <Folder Name="/samples/02-ScoreAndNoul/">
+    <Project Path="samples/02-ScoreAndNoul/ScoreAndNoul.csproj" />
+  </Folder>
+  <Folder Name="/samples/03-ParallelDecisions/">
+    <Project Path="samples/03-ParallelDecisions/ParallelDecisions.csproj" />
+  </Folder>
+  <Folder Name="/samples/04-StructuredState/">
+    <Project Path="samples/04-StructuredState/StructuredState.csproj" />
+  </Folder>
+  <Folder Name="/samples/05-ModelsAndPinning/">
+    <Project Path="samples/05-ModelsAndPinning/ModelsAndPinning.csproj" />
+  </Folder>
+  <Folder Name="/samples/06-DependencyInjection/">
+    <Project Path="samples/06-DependencyInjection/DependencyInjection.csproj" />
+  </Folder>
+  <Folder Name="/samples/07-MEAI-Tools/">
+    <Project Path="samples/07-MEAI-Tools/MeaiTools.csproj" />
+  </Folder>
+  <Folder Name="/samples/08-MEAI-Routing/">
+    <Project Path="samples/08-MEAI-Routing/MeaiRouting.csproj" />
+  </Folder>
+  <Folder Name="/samples/09-MEAI-Assessments/">
+    <Project Path="samples/09-MEAI-Assessments/MeaiAssessments.csproj" />
+  </Folder>
+  <Folder Name="/samples/10-RagReranking/">
+    <Project Path="samples/10-RagReranking/RagReranking.csproj" />
+  </Folder>
+  <Folder Name="/samples/11-OllamaLocal/">
+    <Project Path="samples/11-OllamaLocal/OllamaLocal.csproj" />
+  </Folder>
+  <Folder Name="/samples/12-FoundryDecision/">
+    <Project Path="samples/12-FoundryDecision/FoundryDecision.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ElBruno.AI.Decisions/ElBruno.AI.Decisions.csproj" />
+    <Project Path="src/ElBruno.AI.Decisions.Foundry/ElBruno.AI.Decisions.Foundry.csproj" />
+    <Project Path="src/ElBruno.AI.Decisions.Ollama/ElBruno.AI.Decisions.Ollama.csproj" />
+    <Project Path="src/ElBruno.AI.Decisions.Jev/ElBruno.AI.Decisions.Jev.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ElBruno.AI.Decisions.Tests/ElBruno.AI.Decisions.Tests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.Foundry.Tests/ElBruno.AI.Decisions.Foundry.Tests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.Ollama.Tests/ElBruno.AI.Decisions.Ollama.Tests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.IntegrationTests/ElBruno.AI.Decisions.IntegrationTests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.Jev.IntegrationTests/ElBruno.AI.Decisions.Jev.IntegrationTests.csproj" />
+    <Project Path="tests/ElBruno.AI.Decisions.Jev.Tests/ElBruno.AI.Decisions.Jev.Tests.csproj" />
+  </Folder>
+</Solution>

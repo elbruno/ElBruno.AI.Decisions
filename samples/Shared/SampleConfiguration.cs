@@ -1,5 +1,5 @@
 using System.Reflection;
-using ElBruno.AI.Jev;
+using ElBruno.AI.Decisions.Jev;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

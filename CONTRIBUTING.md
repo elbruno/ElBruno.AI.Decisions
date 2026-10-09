@@ -3,9 +3,9 @@
 Use the .NET 10 SDK selected by `global.json`. Keep changes scoped to the official TypeSafe Jev decision API and preserve the distinction between decisions and generative chat.
 
 ```powershell
-dotnet build ElBruno.AI.Jev.slnx -c Release
-dotnet test ElBruno.AI.Jev.slnx -c Release --no-build
-dotnet format ElBruno.AI.Jev.slnx whitespace --verify-no-changes
+dotnet build ElBruno.AI.Decisions.slnx -c Release
+dotnet test ElBruno.AI.Decisions.slnx -c Release --no-build
+dotnet format ElBruno.AI.Decisions.slnx whitespace --verify-no-changes
 ```
 
 Add deterministic contract and failure-path tests with every behavior change. Never require credentials for normal PR checks. Do not copy sensitive inputs or real keys into fixtures. Unknown fields must not be lost, unsupported features must not silently succeed, and new defaults must not unexpectedly increase inference cost.

@@ -1,0 +1,91 @@
+# Decision use cases
+
+## Start with Foundry
+
+Use Microsoft-Decision-1 for fixed-outcome tasks such as support routing,
+intent classification, answer-quality evaluation, or relevance assessment.
+Create a `FoundryDecisionClient` as shown in the
+[main README](../README.md#1-foundry-microsoft-decision-1).
+Use your deployment name and the resource endpoint, not the project portal URL.
+See [the full runnable sample](../samples/12-FoundryDecision/README.md).
+
+After creating `client`, the following shared API examples work with Foundry,
+Ollama, or `JevDecisionClientAdapter`:
+
+```csharp
+var route = await client.ChooseAsync(
+    "I was charged twice.", "Which team should handle this request?",
+    new Dictionary<string, string?> { ["billing"] = "Charges and invoices", ["support"] = "Technical problems" });
+Console.WriteLine($"{route.Choice}: confidence {route.Confidence:P1}");
+foreach (var option in route.Probabilities)
+    Console.WriteLine($"{option.Key}: {option.Value:P1}");
+```
+
+Use descriptions that make the categories distinct. Include a fallback category
+when inputs may fall outside your supported options. Set human-review thresholds
+from labeled evaluation data, not from an arbitrary confidence percentage.
+
+```csharp
+var quality = await client.ScoreAsync(
+    "Reset your password from the account page.",
+    "How helpful is this response to someone who forgot their password?",
+    ["Does not address the problem", "Partially helpful", "Clear actionable solution"]);
+Console.WriteLine($"Expected level: {quality.Score:F2} of 2");
+```
+
+Rubrics are ordered from lowest to highest. The score is a fractional expected
+zero-based level, not a rounded grade. `LevelProbabilities` retains uncertainty.
+Score supports 2-10 levels.
+
+```csharp
+var relevance = await client.AssessAsync(
+    "This passage explains dependency injection in .NET.",
+    "The passage is relevant to a question about .NET dependency injection.");
+Console.WriteLine($"Relevant: {relevance.Probability:P1}");
+```
+
+Assess is a probability of a proposition, not a boolean, a severity grade, or
+a guarantee of safety. Foundry expresses this as a native Noul question.
+
+## Run the same tasks locally with Ollama
+
+Use the [Ollama sample](../samples/11-OllamaLocal/README.md) to run all three
+operations. Models answer a letter corresponding to an option; the client
+normalizes first-token log probabilities across those letters.
+Choose supports 2-26 options on this provider.
+
+These numbers are conditional token probabilities, not proof of calibrated
+decision confidence. Small models can be unreliable for safety assessments.
+Evaluate your chosen model on the actual workload; do not use the injection
+example as an automatic security gate.
+
+## Native Jev and advanced scenarios
+
+Use Jev when you need multiple typed questions in a single request, structured
+JSON evidence, or native model discovery. Start with
+[Choice](../samples/01-HelloChoice/README.md),
+[Score and Noul](../samples/02-ScoreAndNoul/README.md),
+[parallel questions](../samples/03-ParallelDecisions/README.md), and
+[structured state](../samples/04-StructuredState/README.md).
+
+For application composition, see
+[DI](../samples/06-DependencyInjection/README.md),
+[agent function tools](../samples/07-MEAI-Tools/README.md),
+[chat routing](../samples/08-MEAI-Routing/README.md),
+[input/output assessments](../samples/09-MEAI-Assessments/README.md), and
+[RAG reranking](../samples/10-RagReranking/README.md).
+These are native Jev examples; the shared `DecisionRoutingChatClient` can
+instead route using any `IDecisionClient` plus caller-supplied chat clients.
+
+## Configuration, failures, and validation
+
+See [configuration](configuration.md) for secrets and authentication,
+[testing](testing.md) for opt-in live calls, and
+[release validation](releasing.md) for exact-package consumer checks.
+Foundry's documented route is `/providers/microsoft/v1/systemone`.
+API-key authentication takes precedence over Azure CLI authentication.
+
+Never hardcode secrets. An offline sample exercises synthetic transport only.
+Smoke tests verify basic compatibility, not calibration, accuracy, latency under
+load, or production readiness. Decisions about people in consequential domains
+must not rely on this model as the sole decision-maker.

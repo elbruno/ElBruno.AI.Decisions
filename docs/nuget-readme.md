@@ -1,6 +1,6 @@
-# ElBruno.AI.Jev
+# ElBruno.AI.Decisions.Jev
 
-A community .NET 10 client for the official TypeSafe AI Jev service.
+A community .NET 10 client for the official TypeSafe AI Jev service. It is one provider of the ElBruno.AI.Decisions family, which also includes `ElBruno.AI.Decisions` (provider-neutral `IDecisionClient`), `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1) and `ElBruno.AI.Decisions.Ollama` (local models).
 
 > **Tentative early-access release (0.6.0).** Live service compatibility remains
 > unverified, and live testing is deferred. Offline test and package validation
@@ -9,10 +9,15 @@ A community .NET 10 client for the official TypeSafe AI Jev service.
 > no prerelease suffix, but this package is still explicitly tentative.
 
 ```powershell
-dotnet add package ElBruno.AI.Jev --version 0.6.0
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
 ```
 
 ## Capabilities
+
+The Foundry package uses `/providers/microsoft/v1/systemone` and the named
+TypeSafe-style question contract documented by Microsoft. Choice, Score and
+Assess were smoke-tested live with API-key authentication on October 9, 2026.
+This does not establish production readiness or probability calibration.
 
 - Choice classification with full probability distributions and confidence.
 - Score evaluation against ordered rubrics, preserving fractional results and legends.
@@ -27,7 +32,7 @@ Jev is not a generative chat or embedding service. This package does not invent 
 ## Quickstart
 
 ```csharp
-using ElBruno.AI.Jev;
+using ElBruno.AI.Decisions.Jev;
 
 using var client = new JevClient(new JevClientOptions
 {
@@ -49,5 +54,5 @@ Microsoft.Extensions.AI integrations wrap your own chat clients; a Jev credentia
 Official service documentation: https://docs.typesafe.ai/
 
 The maintainer has authorized this tentative release before live verification.
-See [the project repository](https://github.com/elbruno/ElBruno.AI.Jev) for runnable
+See [the project repository](https://github.com/elbruno/ElBruno.AI.Decisions) for runnable
 samples, configuration, tests, known limitations, and release instructions.

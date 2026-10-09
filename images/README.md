@@ -1,4 +1,4 @@
-# ElBruno.AI.Jev visual assets
+# ElBruno.AI.Decisions.Jev visual assets
 
 Original teal-and-violet braces and branching-choice artwork on deep navy,
 created for an **independent community .NET SDK for Jev AI**. This is not an
@@ -26,10 +26,10 @@ does not depend on the surrounding page theme.
 | File | Suggested alt text |
 | --- | --- |
 | `jev-mark-1024.png` | Teal curly braces enclose a branching path from one teal input node to two violet choice nodes on a deep navy background. |
-| `nuget-icon.png` | ElBruno.AI.Jev icon: teal braces around a teal-and-violet branching choice. |
-| `jev-icon-64.png` | ElBruno.AI.Jev branching-choice emblem. |
-| `repo-hero.png` | ElBruno.AI.Jev — Typed decisions for Jev AI. Independent community SDK for .NET 10, with a teal-and-violet branching-choice emblem. |
-| `social-preview.png` | ElBruno.AI.Jev: Typed decisions for Jev AI. A .NET 10 independent community SDK, illustrated by braces enclosing a branching choice. |
+| `nuget-icon.png` | ElBruno.AI.Decisions.Jev icon: teal braces around a teal-and-violet branching choice. |
+| `jev-icon-64.png` | ElBruno.AI.Decisions.Jev branching-choice emblem. |
+| `repo-hero.png` | ElBruno.AI.Decisions.Jev — Typed decisions for Jev AI. Independent community SDK for .NET 10, with a teal-and-violet branching-choice emblem. |
+| `social-preview.png` | ElBruno.AI.Decisions.Jev: Typed decisions for Jev AI. A .NET 10 independent community SDK, illustrated by braces enclosing a branching choice. |
 
 ## Provenance
 
@@ -116,7 +116,7 @@ assets' PNG signatures, dimensions, and the NuGet icon's size.
 5. Compose the hero at 1600 x 900 with a 488 px emblem and 112 px text margins.
    Compose the social preview at 1280 x 640 with a 352 px emblem and 80 px text
    margins; essential content remains within a 64 px crop-safe inset.
-6. Render `ElBruno.AI.Jev`, `Typed decisions for Jev AI`, `.NET 10`,
+6. Render `ElBruno.AI.Decisions.Jev`, `Typed decisions for Jev AI`, `.NET 10`,
    `COMMUNITY SDK`, and `Independent community SDK` in Segoe UI/Semibold.
    All font sizes use pixels at 96 DPI; positions and sizes are fixed in the
    script. Keep the light title, muted supporting copy, and teal framework

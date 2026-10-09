@@ -5,8 +5,8 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Include>[ElBruno.AI.Jev]*</Include>
-          <Exclude>[ElBruno.AI.Jev]ElBruno.AI.Jev.JevJsonContext*</Exclude>
+          <Include>[ElBruno.AI.Decisions.Jev]*</Include>
+          <Exclude>[ElBruno.AI.Decisions.Jev]ElBruno.AI.Decisions.Jev.JevJsonContext*</Exclude>
           <IncludeTestAssembly>false</IncludeTestAssembly>
           <SkipAutoProps>false</SkipAutoProps>
           <DeterministicReport>true</DeterministicReport>

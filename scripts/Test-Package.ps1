@@ -1,5 +1,7 @@
 [CmdletBinding()]
 param(
+    [ValidateSet('All', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')]
+    [string]$PackageId = 'All',
     [string]$PackageDirectory,
     [string]$Version,
     [switch]$RequireSourceLink,
@@ -13,9 +15,17 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ($PackageId -eq 'All') {
+    $parameters = @{} + $PSBoundParameters
+    foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')) {
+        $parameters['PackageId'] = $id
+        & $PSCommandPath @parameters
+    }
+    return
+}
 $repositoryRoot = Split-Path $PSScriptRoot -Parent
-$packageId = 'ElBruno.AI.Jev'
-$consumerRoot = Join-Path (Join-Path $repositoryRoot 'tests') "$packageId.PackageTests"
+$consumerId = 'ElBruno.AI.Decisions.Jev'
+$consumerRoot = Join-Path (Join-Path $repositoryRoot 'tests') "$consumerId.PackageTests"
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
     $props = [xml](Get-Content -LiteralPath (Join-Path $repositoryRoot 'Directory.Build.props') -Raw)
@@ -136,7 +146,12 @@ try {
     }
     $dependencies = @(Get-Metadata $manifest 'dependencies' |
         ForEach-Object { $_.SelectNodes("*[local-name()='group']/*[local-name()='dependency']") })
-    foreach ($dependency in @('Microsoft.Extensions.AI', 'Microsoft.Extensions.Http')) {
+    $requiredDependencies = switch ($PackageId) {
+        'ElBruno.AI.Decisions' { @('Microsoft.Extensions.AI.Abstractions') }
+        'ElBruno.AI.Decisions.Jev' { @('ElBruno.AI.Decisions', 'Microsoft.Extensions.AI', 'Microsoft.Extensions.Http') }
+        default { @('ElBruno.AI.Decisions', 'Microsoft.Extensions.Http') }
+    }
+    foreach ($dependency in $requiredDependencies) {
         if (-not ($dependencies | Where-Object { $_.GetAttribute('id') -ceq $dependency -and $_.GetAttribute('version') })) {
             throw "Missing versioned package dependency: $dependency"
         }
@@ -154,7 +169,7 @@ try {
     if ($xmlDocumentation.doc.assembly.name -ne $packageId -or $xmlDocumentation.doc.members.member.Count -lt 1) {
         throw 'Missing assembly XML documentation members.'
     }
-    if ([System.Text.Encoding]::UTF8.GetString($readmeBytes) -notmatch 'ElBruno\.AI\.Jev' -or
+    if ([System.Text.Encoding]::UTF8.GetString($readmeBytes) -notmatch 'ElBruno\.AI\.Decisions\.Jev' -or
         [System.Text.Encoding]::UTF8.GetString($licenseBytes) -notmatch 'MIT License') {
         throw 'Invalid packaged README or license content.'
     }
@@ -163,7 +178,7 @@ try {
     if ($packagedReadme -cne $sourceReadme) {
         throw 'Packaged README.md must match docs/nuget-readme.md, not the root README. Use the matching release checkout for downloaded artifacts.'
     }
-    if ($Version -ceq '0.6.0') {
+    if ($Version -ceq '0.6.0' -and $PackageId -ceq 'ElBruno.AI.Decisions.Jev') {
         foreach ($text in @((Get-Metadata $manifest 'description').InnerText, (Get-Metadata $manifest 'releaseNotes').InnerText, $packagedReadme)) {
             if ($text -notmatch '\btentative\b' -or $text -notmatch '\bunverified\b') {
                 throw 'Tentative 0.6.0 must disclose tentative status and unverified live compatibility in its description, release notes, and README.'
@@ -209,15 +224,15 @@ function Invoke-Dotnet {
 }
 
 try {
-    Copy-Item -LiteralPath (Join-Path $consumerRoot "$packageId.PackageTests.csproj") -Destination $runDirectory
+    Copy-Item -LiteralPath (Join-Path $consumerRoot "$consumerId.PackageTests.csproj") -Destination $runDirectory
     Copy-Item -LiteralPath (Join-Path $consumerRoot 'Program.cs') -Destination $runDirectory
-    $project = Join-Path $runDirectory "$packageId.PackageTests.csproj"
+    $project = Join-Path $runDirectory "$consumerId.PackageTests.csproj"
     $pdbPath = Join-Path $runDirectory "$packageId.pdb"
     [System.IO.File]::WriteAllBytes($pdbPath, $pdbBytes)
     $escapedFeed = [System.Security.SecurityElement]::Escape($feed)
     $localSource = if ($UsePublicFeed) { '' } else { "<add key=`"packed`" value=`"$escapedFeed`" />" }
     $localMapping = if ($UsePublicFeed) { '' } else {
-        "<packageSource key=`"packed`"><package pattern=`"$packageId`" /></packageSource>"
+        '<packageSource key="packed"><package pattern="ElBruno.AI.Decisions" /><package pattern="ElBruno.AI.Decisions.*" /></packageSource>'
     }
     $configuration = @"
 <?xml version="1.0" encoding="utf-8"?>
@@ -257,7 +272,7 @@ try {
     $expectedRepository = if ($RequireSourceLink) { $ExpectedRepositoryUrl } else { '-' }
     $expectedCommit = if ($RequireSourceLink) { $repository.GetAttribute('commit') } else { '-' }
     Invoke-Dotnet -Arguments @('run', '--project', $project, '--configuration', 'Release', '--no-build', '--no-restore',
-        "-p:JevPackageVersion=$Version", '--', $Version, $assemblyHash, $pdbPath, $expectedRepository, $expectedCommit)
+        "-p:JevPackageVersion=$Version", '--', $Version, $assemblyHash, $pdbPath, $expectedRepository, $expectedCommit, $PackageId)
     Write-Host "PASS: package ZIP, metadata, symbols, and isolated $(if ($UsePublicFeed) { 'public NuGet' } else { 'local packed' }) consumer."
 }
 finally {

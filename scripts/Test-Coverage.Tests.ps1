@@ -9,7 +9,7 @@ $utf8 = [Text.UTF8Encoding]::new($false)
 $passed = 0
 
 function New-CoverageXml {
-    param([long]$Lines = 90, [long]$Branches = 85, [long]$Valid = 100, [string]$Assembly = 'ElBruno.AI.Jev')
+    param([long]$Lines = 90, [long]$Branches = 85, [long]$Valid = 100, [string]$Assembly = 'ElBruno.AI.Decisions.Jev')
     return "<coverage lines-covered='$Lines' lines-valid='$Valid' branches-covered='$Branches' branches-valid='$Valid'><packages><package name='$Assembly'/></packages></coverage>"
 }
 
@@ -48,7 +48,7 @@ try {
     Assert-CoverageCheck -Name 'missing-report' -ExpectedError 'exactly one distinct'
     Assert-CoverageCheck -Name 'line-threshold' -Reports @((New-CoverageXml -Lines 8999 -Branches 10000 -Valid 10000)) -ExpectedError 'lines coverage is below'
     Assert-CoverageCheck -Name 'branch-threshold' -Reports @((New-CoverageXml -Lines 10000 -Branches 8499 -Valid 10000)) -ExpectedError 'branches coverage is below'
-    Assert-CoverageCheck -Name 'wrong-assembly' -Reports @((New-CoverageXml -Assembly 'Unrelated')) -ExpectedError 'only the ElBruno.AI.Jev assembly'
+    Assert-CoverageCheck -Name 'wrong-assembly' -Reports @((New-CoverageXml -Assembly 'Unrelated')) -ExpectedError 'only the ElBruno.AI.Decisions.Jev assembly'
     Assert-CoverageCheck -Name 'impossible-counts' -Reports @((New-CoverageXml -Lines 101)) -ExpectedError 'Invalid or empty lines'
     Assert-CoverageCheck -Name 'empty-counts' -Reports @((New-CoverageXml -Lines 0 -Branches 0 -Valid 0)) -ExpectedError 'Invalid or empty lines'
     Write-Host "PASS: $passed coverage-gate regression checks."

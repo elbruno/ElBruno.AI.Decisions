@@ -40,24 +40,26 @@ jobs:
           dotnet-version: '10.0.4xx'
       - name: Restore, build, and check formatting
         run: |
-          dotnet restore ElBruno.AI.Jev.slnx
+          dotnet restore ElBruno.AI.Decisions.slnx
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet build ElBruno.AI.Jev.slnx --configuration Release --no-restore
+          dotnet build ElBruno.AI.Decisions.slnx --configuration Release --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet format ElBruno.AI.Jev.slnx --verify-no-changes --no-restore
+          dotnet format ElBruno.AI.Decisions.slnx --verify-no-changes --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Offline unit tests and coverage
         run: |
           & .\scripts\Test-Coverage.Tests.ps1
           & .\scripts\Test-ReleasePolicy.Tests.ps1
-          $project = (Resolve-Path .\tests\ElBruno.AI.Jev.Tests\ElBruno.AI.Jev.Tests.csproj).Path
+          $project = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.Tests\ElBruno.AI.Decisions.Jev.Tests.csproj).Path
           $results = Join-Path (Join-Path $PWD artifacts) coverage
           dotnet test $project --configuration Release --no-build --no-restore --settings coverage.runsettings --collect 'XPlat Code Coverage' --logger trx --results-directory $results
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\scripts\Test-Coverage.ps1 -ReportDirectory $results
+          dotnet test ElBruno.AI.Decisions.slnx --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) all-tests)
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Confirm live tests remain opt-in
         run: |
-          $project = (Resolve-Path .\tests\ElBruno.AI.Jev.IntegrationTests\ElBruno.AI.Jev.IntegrationTests.csproj).Path
+          $project = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.IntegrationTests\ElBruno.AI.Decisions.Jev.IntegrationTests.csproj).Path
           dotnet test $project --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) integration)
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile and run every sample with explicit offline fixtures
@@ -72,11 +74,15 @@ jobs:
           }
       - name: Pack and test the isolated consumer
         run: |
-          $project = (Resolve-Path .\src\ElBruno.AI.Jev\ElBruno.AI.Jev.csproj).Path
           $packages = Join-Path (Join-Path $PWD artifacts) packages
-          dotnet pack $project --configuration Release --no-build --no-restore --output $packages
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & .\scripts\Test-Package.ps1 -PackageDirectory $packages
+          $ids = @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')
+          foreach ($id in $ids) {
+            dotnet pack ".\src\$id\$id.csproj" --configuration Release --no-build --no-restore --output $packages
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          foreach ($id in $ids) {
+            & .\scripts\Test-Package.ps1 -PackageDirectory $packages -PackageId $id
+          }
       - name: Upload test and package evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,11 +103,11 @@ jobs:
           dotnet-version: '10.0.4xx'
       - name: Restore, build, and run offline smoke tests
         run: |
-          dotnet restore ElBruno.AI.Jev.slnx
+          dotnet restore ElBruno.AI.Decisions.slnx
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          dotnet build ElBruno.AI.Jev.slnx --configuration Release --no-restore
+          dotnet build ElBruno.AI.Decisions.slnx --configuration Release --no-restore
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $project = (Resolve-Path .\tests\ElBruno.AI.Jev.Tests\ElBruno.AI.Jev.Tests.csproj).Path
+          $project = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.Tests\ElBruno.AI.Decisions.Jev.Tests.csproj).Path
           dotnet test $project --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) smoke)
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4

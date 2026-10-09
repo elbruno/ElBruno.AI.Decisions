@@ -45,14 +45,14 @@ deployment-specific: evaluate them on labelled data before gating production beh
 
 ## Development
 
-All samples and the live integration-test project share `UserSecretsId` **ElBruno.AI.Jev.Development**:
+All samples and the live integration-test project share `UserSecretsId` **ElBruno.AI.Decisions.Jev.Development**:
 
 ```powershell
 .\scripts\Set-JevUserSecrets.ps1
 dotnet user-secrets set "Jev:DefaultModel" "jev-1.13.0" --project samples\01-HelloChoice
 ```
 
-The setup script prompts for a masked key and sends JSON to `dotnet user-secrets set --id ElBruno.AI.Jev.Development` through standard input. It sets only `Jev:ApiKey`, preserving the existing model and other settings. Run it once for all ten samples and live integration tests; `-WhatIf` previews the target without prompting or writing anything.
+The setup script prompts for a masked key and sends JSON to `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` through standard input. It sets only `Jev:ApiKey`, preserving the existing model and other settings. Run it once for all ten samples and live integration tests; `-WhatIf` previews the target without prompting or writing anything.
 
 Never put the key in chat, source, command arguments, or test recordings. User-secrets are outside the repository, but **are not encrypted** and are only for development. A plaintext representation is necessarily created briefly in process memory to pass it to Secret Manager. The library itself never loads user-secrets or environment variables.
 
@@ -106,3 +106,34 @@ Inject credentials from the application's controlled secret provider. In a host 
 An explicitly configured endpoint must be an HTTPS **origin**, without a path, user information, query, or fragment. Test-only HTTP requires both a loopback host and `AllowInsecureLoopback = true`. Do not derive endpoint overrides from untrusted requests.
 
 The SDK has no native body logging. Applications should also configure HTTP/OTel logging to avoid sensitive headers and payloads. `RawRepresentation` and opt-in `IncludeErrorBody` are sensitive escape hatches, not safe default telemetry.
+
+## Foundry and Ollama providers
+
+### Microsoft Foundry SystemOne
+
+The provider uses the route documented in the
+[Microsoft launch article](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742):
+`/providers/microsoft/v1/systemone`. HTTPS resource roots append this path;
+full invocation URLs are used unchanged. Requests contain `model`, `state`,
+and a named `questions` object. Choice uses a `criteria` map, Score an ordered
+`criteria` list, and Assess a `noul` question. Responses contain a named `answers`
+object. Choice and Score probabilities are maps, and Assess reads `noul`.
+Provider choice and confidence are preserved. Invalid results fail explicitly.
+
+Choice, Score and Assess were verified against a real Microsoft-Decision-1
+deployment with API-key authentication on October 9, 2026. This smoke test does
+not establish calibration or production readiness. Microsoft-Decision-1 is not
+an OpenAI model; the former OpenAI and MAI Decisions routes have been removed.
+
+Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
+`Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
+`Decisions:Foundry:ApiKey` is optional: when supplied it takes precedence;
+when absent or empty the Foundry client uses `AzureCliCredential` after `az login`,
+requesting the `https://cognitiveservices.azure.com/.default` scope.
+Your signed-in identity must have permission to invoke the deployed model.
+The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
+use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
+for Azure CLI authentication, and remove any previously configured API key.
+
+- Foundry: user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`.
+- Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.
