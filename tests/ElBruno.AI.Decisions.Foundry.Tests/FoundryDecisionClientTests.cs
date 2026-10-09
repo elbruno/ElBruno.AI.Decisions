@@ -6,6 +6,51 @@ namespace ElBruno.AI.Decisions.Foundry.Tests;
 
 public sealed class FoundryDecisionClientTests
 {
+    private sealed class Credential : Azure.Core.TokenCredential
+    {
+        public int Calls { get; private set; }
+        public override Azure.Core.AccessToken GetToken(Azure.Core.TokenRequestContext requestContext, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
+        public override ValueTask<Azure.Core.AccessToken> GetTokenAsync(Azure.Core.TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            Assert.Equal(["https://cognitiveservices.azure.com/.default"], requestContext.Scopes);
+            Calls++;
+            return ValueTask.FromResult(new Azure.Core.AccessToken("synthetic-token", DateTimeOffset.UtcNow.AddMinutes(5)));
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task WithoutApiKeyUsesTokenCredential(string? key)
+    {
+        var credential = new Credential();
+        var handler = new Handler((_, _) => Json("""{"probabilities":{"yes":1,"no":0}}"""));
+        FoundryDecisionOptions options = Options();
+        options.ApiKey = key;
+        options.Credential = credential;
+        using var http = new HttpClient(handler);
+        using var client = new FoundryDecisionClient(http, options);
+        await client.AssessAsync("t", "p");
+        Assert.Equal(1, credential.Calls);
+        Assert.Equal("synthetic-token", handler.Request!.Headers.Authorization!.Parameter);
+        Assert.False(handler.Request.Headers.Contains("api-key"));
+    }
+
+    [Fact]
+    public async Task ApiKeyTakesPrecedenceOverCredential()
+    {
+        var credential = new Credential();
+        var handler = new Handler((_, _) => Json("""{"probabilities":{"yes":1,"no":0}}"""));
+        FoundryDecisionOptions options = Options();
+        options.Credential = credential;
+        using var http = new HttpClient(handler);
+        using var client = new FoundryDecisionClient(http, options);
+        await client.AssessAsync("t", "p");
+        Assert.Equal(0, credential.Calls);
+        Assert.Equal("test-key", handler.Request!.Headers.GetValues("api-key").Single());
+    }
     private sealed class Handler(Func<HttpRequestMessage, string, HttpResponseMessage> respond) : HttpMessageHandler
     {
         public HttpRequestMessage? Request { get; private set; }
@@ -131,7 +176,6 @@ public sealed class FoundryDecisionClientTests
     [Theory]
     [InlineData(null, "key")]
     [InlineData("http://insecure.example/score", "key")]
-    [InlineData("https://example.com/score", "")]
     public void InvalidOptionsAreRejected(string? endpoint, string key)
     {
         var options = new FoundryDecisionOptions { Endpoint = endpoint is null ? null : new Uri(endpoint), ApiKey = key };

@@ -16,7 +16,7 @@ if (offline) Console.WriteLine("OFFLINE: synthetic protocol response, not live F
 var options = new FoundryDecisionOptions
 {
     Endpoint = new Uri(offline ? "https://example.invalid/score" : configuration["Decisions:Foundry:Endpoint"] ?? throw new InvalidOperationException("Configure Decisions:Foundry:Endpoint.")),
-    ApiKey = offline ? "synthetic-key" : configuration["Decisions:Foundry:ApiKey"] ?? throw new InvalidOperationException("Configure Decisions:Foundry:ApiKey."),
+    ApiKey = offline ? "synthetic-key" : configuration["Decisions:Foundry:ApiKey"],
     Model = configuration["Decisions:Foundry:Model"] ?? "microsoft-decision-1",
     ApiKeyHeaderName = configuration["Decisions:Foundry:ApiKeyHeader"] ?? "api-key"
 };

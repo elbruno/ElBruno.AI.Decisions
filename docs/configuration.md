@@ -109,6 +109,15 @@ The SDK has no native body logging. Applications should also configure HTTP/OTel
 
 ## Foundry and Ollama providers
 
+Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
+`Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
+`Decisions:Foundry:ApiKey` is optional: when supplied it takes precedence;
+when absent or empty the Foundry client uses `AzureCliCredential` after `az login`,
+requesting the `https://cognitiveservices.azure.com/.default` scope.
+Your signed-in identity must have permission to invoke the deployed model.
+The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
+use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
+for Azure CLI authentication, and remove any previously configured API key.
+
 - Foundry (Microsoft-Decision-1): user-secrets keys `Decisions:Foundry:Endpoint` (full HTTPS scoring URL), `Decisions:Foundry:ApiKey`, optional `Decisions:Foundry:Model` and `Decisions:Foundry:ApiKeyHeader`. Set them with `scripts/Set-FoundryUserSecrets.ps1`. The wire format is unverified until a live run.
 - Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.
-

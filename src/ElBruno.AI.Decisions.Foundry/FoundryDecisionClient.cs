@@ -18,6 +18,7 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     private readonly HttpClient _http;
     private readonly bool _ownsHttp;
     private readonly FoundryDecisionOptions _options;
+    private readonly Azure.Core.TokenCredential? _credential;
 
     /// <summary>Creates a client with its own HTTP transport.</summary>
     public FoundryDecisionClient(FoundryDecisionOptions options)
@@ -35,6 +36,9 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         _http = httpClient;
         _ownsHttp = ownsHttp;
         _options = options;
+        _credential = string.IsNullOrWhiteSpace(options.ApiKey)
+            ? options.Credential ?? new Azure.Identity.AzureCliCredential()
+            : null;
         _http.Timeout = Timeout.InfiniteTimeSpan;
     }
 
@@ -82,7 +86,16 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         {
             Content = new StringContent(FoundryProtocol.BuildRequest(_options.Model, situation, question, options), Encoding.UTF8, "application/json")
         };
-        if (string.Equals(_options.ApiKeyHeaderName, "Authorization", StringComparison.OrdinalIgnoreCase))
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(_options.Timeout);
+        if (_credential is not null)
+        {
+            Azure.Core.AccessToken token = await _credential.GetTokenAsync(
+                new Azure.Core.TokenRequestContext(["https://cognitiveservices.azure.com/.default"]),
+                timeout.Token).ConfigureAwait(false);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+        }
+        else if (string.Equals(_options.ApiKeyHeaderName, "Authorization", StringComparison.OrdinalIgnoreCase))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
         }
@@ -91,8 +104,6 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             request.Headers.TryAddWithoutValidation(_options.ApiKeyHeaderName, _options.ApiKey);
         }
 
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(_options.Timeout);
         string body;
         try
         {

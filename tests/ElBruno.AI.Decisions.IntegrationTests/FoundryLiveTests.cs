@@ -15,7 +15,7 @@ public sealed class FoundryLiveTests
         using var client = new FoundryDecisionClient(new FoundryDecisionOptions
         {
             Endpoint = new Uri(configuration["Decisions:Foundry:Endpoint"] ?? throw new InvalidOperationException("Missing Decisions:Foundry:Endpoint.")),
-            ApiKey = configuration["Decisions:Foundry:ApiKey"] ?? throw new InvalidOperationException("Missing Decisions:Foundry:ApiKey."),
+            ApiKey = configuration["Decisions:Foundry:ApiKey"],
             Model = configuration["Decisions:Foundry:Model"] ?? "microsoft-decision-1",
             ApiKeyHeaderName = configuration["Decisions:Foundry:ApiKeyHeader"] ?? "api-key"
         });

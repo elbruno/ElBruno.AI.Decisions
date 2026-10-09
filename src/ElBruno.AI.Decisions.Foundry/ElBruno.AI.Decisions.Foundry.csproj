@@ -11,6 +11,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
     <ProjectReference Include="..\ElBruno.AI.Decisions\ElBruno.AI.Decisions.csproj" />
     <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>

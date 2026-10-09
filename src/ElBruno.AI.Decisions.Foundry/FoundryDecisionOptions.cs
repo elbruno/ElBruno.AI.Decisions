@@ -6,8 +6,11 @@ public sealed class FoundryDecisionOptions
     /// <summary>Gets or sets the full scoring URL of the deployment.</summary>
     public Uri? Endpoint { get; set; }
 
-    /// <summary>Gets or sets the API key. Read it from configuration or user secrets, never from source code.</summary>
+    /// <summary>Gets or sets an optional API key. When absent, authentication uses Azure CLI credentials.</summary>
     public string? ApiKey { get; set; }
+
+    /// <summary>Gets or sets an optional token credential override for testing or hosting.</summary>
+    public Azure.Core.TokenCredential? Credential { get; set; }
 
     /// <summary>Gets or sets the header that carries <see cref="ApiKey"/>; use Authorization to send it as a Bearer token.</summary>
     public string ApiKeyHeaderName { get; set; } = "api-key";
@@ -26,7 +29,6 @@ public sealed class FoundryDecisionOptions
             errors.Add("Endpoint must be an absolute HTTPS URL.");
         }
 
-        if (string.IsNullOrWhiteSpace(ApiKey)) errors.Add("ApiKey is required.");
         if (string.IsNullOrWhiteSpace(ApiKeyHeaderName)) errors.Add("ApiKeyHeaderName is required.");
         if (string.IsNullOrWhiteSpace(Model)) errors.Add("Model is required.");
         if (Timeout <= TimeSpan.Zero) errors.Add("Timeout must be positive.");
