@@ -38,9 +38,9 @@ A community-maintained **.NET 10** client for the **official TypeSafe AI Jev API
 
 > This is not an official TypeSafe AI SDK. The provider is `https://api.typesafe.ai`, documented at [docs.typesafe.ai](https://docs.typesafe.ai/). The independent `jevtypesafeai.com` proxy has different credentials and endpoints and is not supported.
 
-> **Tentative 0.5.0 release:** intended for early evaluation, not a claim of production readiness. Offline tests, samples, and package-consumer checks pass, but **live Jev compatibility remains unverified** and live testing is deferred. Validate the service and your application before production use; APIs may change before 1.0.
+> **Tentative 0.6.0 release:** intended for early evaluation, not a claim of production readiness. Offline tests, samples, and package-consumer checks pass, but **live Jev compatibility remains unverified** and live testing is deferred. Validate the service and your application before production use; APIs may change before 1.0.
 >
-> The exact version `0.5.0` has no prerelease suffix, so NuGet lists it in its stable version channel. **That classification does not change its tentative status.**
+> The exact version `0.6.0` has no prerelease suffix, so NuGet lists it in its stable version channel. **That classification does not change its tentative status.**
 
 ## Why Jev?
 
@@ -59,7 +59,7 @@ Use the **.NET 10 SDK**. The repository pins the 10.0.4xx feature band in `globa
 Install the tentative version:
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Jev --version 0.5.0
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.0
 ```
 
 To build and consume the local package instead, follow the [release guide](docs/releasing.md).

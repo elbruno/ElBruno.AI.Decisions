@@ -8,6 +8,11 @@
 - New `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1; wire format unverified, opt-in live test) and `ElBruno.AI.Decisions.Ollama` (logprob based) providers.
 - Samples 11 (Ollama) and 12 (Foundry).
 
+## 0.6.0 - 2026-09-30
+
+- Added explicit loopback-only local Laya configuration with optional bearer authentication,
+  Laya auto-routing when no model is specified, and an explicit unsupported model-discovery result.
+
 ## 0.5.0 - 2026-09-22 (tentative)
 
 First public release, explicitly authorized for early evaluation while live

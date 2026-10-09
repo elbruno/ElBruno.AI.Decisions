@@ -2,6 +2,47 @@
 
 The SDK targets **official TypeSafe AI**, defaulting to `https://api.typesafe.ai`. Do not use an independent proxy credential or change the endpoint as an automatic fallback.
 
+## Local Laya
+
+[Laya](https://github.com/NandhaKishorM/laya) can expose its compatible `POST /v1/systemone`
+endpoint locally. Install its server extra and start the server according to Laya's documentation;
+then configure this explicit local-only mode:
+
+```csharp
+var client = new JevClient(new JevClientOptions
+{
+    UseLocalLaya = true,
+    Endpoint = new Uri("http://127.0.0.1:8000")
+});
+```
+
+This is intentionally distinct from `AllowInsecureLoopback`, which remains test-only. `UseLocalLaya`
+allows HTTP only at a loopback origin and permits an empty `ApiKey`; it cannot be used to send
+unauthenticated requests to a remote server. If Laya is started with `LAYA_API_KEY`, configure its
+optional bearer token explicitly:
+
+```csharp
+ApiKey = Environment.GetEnvironmentVariable("LAYA_API_KEY") ?? ""
+```
+
+No official TypeSafe credential is selected, copied, or sent by local Laya mode. Avoid exposing a
+Laya server beyond loopback unless you add your own secure reverse proxy and use a separate client
+integration with a reviewed trust boundary.
+
+Requests with no per-call `model` omit that wire field so Laya auto-routes to a loaded checkpoint.
+Set `JevDecisionRequest`'s `model` only to a documented Laya checkpoint or alias when pinning is
+required. Laya currently treats an unrecognized explicit value as auto-routing upstream; because it
+does not publish a model discovery endpoint, the SDK cannot validate that value. `ListModelsAsync`
+therefore throws `JevUnsupportedCapabilityException` with capability `model-discovery` without
+issuing `GET /v1/models`.
+
+The existing `01-HelloChoice` and `02-ScoreAndNoul` samples run unchanged against this client
+configuration and return typed choice probabilities, score distributions/legends/confidence, and
+noul probabilities. Laya responses may include `model` and optional `usage`; the SDK preserves and
+validates both. First use can download or load checkpoints, so preloading trades startup time and
+memory for avoiding cold-request latency. Treat output quality and confidence thresholds as
+deployment-specific: evaluate them on labelled data before gating production behavior.
+
 ## Development
 
 All samples and the live integration-test project share `UserSecretsId` **ElBruno.AI.Decisions.Jev.Development**:

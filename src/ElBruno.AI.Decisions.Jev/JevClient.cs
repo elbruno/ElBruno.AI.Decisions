@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace ElBruno.AI.Decisions.Jev;
 
-/// <summary>A thread-safe, asynchronous client for the official TypeSafe Jev API.</summary>
+/// <summary>A thread-safe, asynchronous client for the TypeSafe Jev API or an explicitly configured local Laya server.</summary>
 /// <remarks>Do not dispose while requests are running. Caller-supplied HTTP clients are borrowed by default.</remarks>
 public sealed class JevClient : IJevDecisionClient, IDisposable
 {
@@ -59,7 +59,7 @@ public sealed class JevClient : IJevDecisionClient, IDisposable
         var wire = new JevWireRequest
         {
             State = request.State,
-            Model = request.Model ?? _options.DefaultModel,
+            Model = request.Model ?? (_options.UseLocalLaya ? null : _options.DefaultModel),
             Questions = request.Questions.ToDictionary(pair => pair.Key, pair => new JevWireQuestion
             {
                 Type = pair.Value.Type,
@@ -76,6 +76,13 @@ public sealed class JevClient : IJevDecisionClient, IDisposable
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         cancellationToken.ThrowIfCancellationRequested();
+        if (_options.UseLocalLaya)
+        {
+            throw new JevUnsupportedCapabilityException(
+                "model-discovery",
+                "Local Laya does not expose the Jev model-discovery endpoint. Select a documented Laya checkpoint explicitly or omit the model for Laya routing.");
+        }
+
         return SendAsync(HttpMethod.Get, "v1/models", null, JevResponseReader.Models, cancellationToken);
     }
 
@@ -170,7 +177,8 @@ public sealed class JevClient : IJevDecisionClient, IDisposable
     private async Task<HttpResult> AttemptAsync(HttpClient client, HttpMethod method, string path, byte[]? body, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(method, new Uri(_options.Endpoint, path));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        if (!string.IsNullOrEmpty(_options.ApiKey))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.UserAgent.Add(UserAgent);
         if (body is not null)

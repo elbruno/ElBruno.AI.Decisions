@@ -3,7 +3,7 @@ namespace ElBruno.AI.Decisions.Jev;
 /// <summary>Connection and bounded resilience settings. A client snapshots these options at construction.</summary>
 public sealed class JevClientOptions
 {
-    /// <summary>Gets or sets the official TypeSafe credential. It is never included in default diagnostics.</summary>
+    /// <summary>Gets or sets the TypeSafe or optional local Laya bearer credential. It is never included in default diagnostics.</summary>
     public string ApiKey { get; set; } = "";
 
     /// <summary>Gets or sets an explicit service origin. Credentials are sent only to this configured origin.</summary>
@@ -39,15 +39,25 @@ public sealed class JevClientOptions
     /// <summary>Gets or sets an explicit test-only exception allowing HTTP to a loopback origin.</summary>
     public bool AllowInsecureLoopback { get; set; }
 
+    /// <summary>Gets or sets whether this client connects to a local Laya server on a loopback origin.</summary>
+    /// <remarks>
+    /// This opt-in permits an empty <see cref="ApiKey"/> and HTTP loopback. Requests without an
+    /// explicit model omit the model field so Laya can select a checkpoint. Laya does not expose
+    /// Jev model discovery, and remote Laya endpoints are intentionally unsupported.
+    /// </remarks>
+    public bool UseLocalLaya { get; set; }
+
     internal string[] ValidationErrors()
     {
         var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(ApiKey) || ApiKey.Any(char.IsWhiteSpace))
-            errors.Add("Jev:ApiKey must contain a nonempty credential without whitespace.");
+        if ((!UseLocalLaya && string.IsNullOrWhiteSpace(ApiKey)) || (!string.IsNullOrEmpty(ApiKey) && ApiKey.Any(char.IsWhiteSpace)))
+            errors.Add("Jev:ApiKey must contain a nonempty credential without whitespace unless Jev:UseLocalLaya is enabled.");
         if (Endpoint is null || !Endpoint.IsAbsoluteUri ||
-            (Endpoint.Scheme != Uri.UriSchemeHttps && !(AllowInsecureLoopback && Endpoint.Scheme == Uri.UriSchemeHttp && Endpoint.IsLoopback)) ||
+            (UseLocalLaya
+                ? (!Endpoint.IsLoopback || (Endpoint.Scheme != Uri.UriSchemeHttp && Endpoint.Scheme != Uri.UriSchemeHttps))
+                : (Endpoint.Scheme != Uri.UriSchemeHttps && !(AllowInsecureLoopback && Endpoint.Scheme == Uri.UriSchemeHttp && Endpoint.IsLoopback))) ||
             Endpoint.AbsolutePath != "/" || Endpoint.Query.Length != 0 || Endpoint.Fragment.Length != 0 || Endpoint.UserInfo.Length != 0)
-            errors.Add("Jev:Endpoint must be an HTTPS origin without a path, query, fragment, or user information. HTTP loopback requires explicit test opt-in.");
+            errors.Add("Jev:Endpoint must be an HTTPS origin without a path, query, fragment, or user information. HTTP loopback requires explicit test opt-in; local Laya requires a loopback HTTP or HTTPS origin.");
         if (string.IsNullOrWhiteSpace(DefaultModel)) errors.Add("Jev:DefaultModel must be nonempty.");
         if (Timeout <= TimeSpan.Zero || Timeout > TimeSpan.FromDays(1)) errors.Add("Jev:Timeout must be greater than zero and at most one day.");
         if (MaxRetries is < 0 or > 10) errors.Add("Jev:MaxRetries must be between zero and ten.");

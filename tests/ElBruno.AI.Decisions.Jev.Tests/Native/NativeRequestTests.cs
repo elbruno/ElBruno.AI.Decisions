@@ -31,6 +31,63 @@ public sealed class NativeRequestTests
     }
 
     [Fact]
+    public async Task LocalLayaOmitsUnspecifiedModelAndDoesNotSendAnEmptyBearer()
+    {
+        using var handler = new RecordingHandler((_, _) => Task.FromResult(NativeFixtures.JsonResponse("""{"model":"laya-multilingual","answers":{"route":{"type":"choice","choice":"fast","probabilities":{"fast":0.75,"careful":0.25},"confidence":0.8}},"usage":{"input_tokens":11,"output_tokens":2}}""")));
+        using var http = new HttpClient(handler);
+        using var client = new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri("http://127.0.0.1:8000")
+        });
+
+        JevDecisionResponse response = await client.EvaluateAsync(NativeFixtures.ChoiceRequest());
+
+        RecordedRequest sent = Assert.Single(handler.Requests);
+        Assert.Null(sent.Authorization);
+        JsonElement body = JevJson.Parse(sent.Body!);
+        Assert.False(body.TryGetProperty("model", out _));
+        Assert.Equal("laya-multilingual", response.Model);
+        Assert.Equal(new JevUsage(11, 2), response.Usage);
+    }
+
+    [Fact]
+    public async Task LocalLayaSendsConfiguredBearerAndExplicitCheckpointWithoutValidatingIt()
+    {
+        using var handler = new RecordingHandler((_, _) => Task.FromResult(NativeFixtures.JsonResponse()));
+        using var http = new HttpClient(handler);
+        using var client = new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri("http://localhost:8000"),
+            ApiKey = NativeFixtures.Credential
+        });
+
+        await client.EvaluateAsync(NativeFixtures.ChoiceRequest("unrecognized-checkpoint"));
+
+        RecordedRequest sent = Assert.Single(handler.Requests);
+        Assert.Equal($"Bearer {NativeFixtures.Credential}", sent.Authorization);
+        Assert.Equal("unrecognized-checkpoint", JevJson.Parse(sent.Body!).GetProperty("model").GetString());
+    }
+
+    [Fact]
+    public async Task LocalLayaModelDiscoveryFailsWithoutMakingAnHttpRequest()
+    {
+        using var handler = new RecordingHandler((_, _) => throw new InvalidOperationException("must not send"));
+        using var http = new HttpClient(handler);
+        using var client = new JevClient(http, new JevClientOptions
+        {
+            UseLocalLaya = true,
+            Endpoint = new Uri("http://localhost:8000")
+        });
+
+        JevUnsupportedCapabilityException exception = await Assert.ThrowsAsync<JevUnsupportedCapabilityException>(() => client.ListModelsAsync());
+
+        Assert.Equal("model-discovery", exception.Capability);
+        Assert.Equal(0, handler.Calls);
+    }
+
+    [Fact]
     public async Task StructuredAndNullDescriptorsPreserveJsonTypesAndQuestionOrder()
     {
         var request = new JevDecisionRequest(JevJson.Parse("""{"conversation":["hello"],"attempt":3}"""), JevModels.Preview)
