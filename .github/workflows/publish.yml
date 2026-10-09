@@ -131,6 +131,8 @@ jobs:
           dotnet test $tests --configuration Release --no-build --no-restore --settings coverage.runsettings --collect 'XPlat Code Coverage' --logger trx --results-directory $results @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\scripts\Test-Coverage.ps1 -ReportDirectory $results
+          dotnet test ElBruno.AI.Decisions.slnx --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) all-tests) @properties
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $integration = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.IntegrationTests\ElBruno.AI.Decisions.Jev.IntegrationTests.csproj).Path
           dotnet test $integration --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) integration) @properties
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

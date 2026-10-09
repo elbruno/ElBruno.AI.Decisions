@@ -55,6 +55,8 @@ jobs:
           dotnet test $project --configuration Release --no-build --no-restore --settings coverage.runsettings --collect 'XPlat Code Coverage' --logger trx --results-directory $results
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & .\scripts\Test-Coverage.ps1 -ReportDirectory $results
+          dotnet test ElBruno.AI.Decisions.slnx --configuration Release --no-build --no-restore --logger trx --results-directory (Join-Path (Join-Path $PWD artifacts) all-tests)
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Confirm live tests remain opt-in
         run: |
           $project = (Resolve-Path .\tests\ElBruno.AI.Decisions.Jev.IntegrationTests\ElBruno.AI.Decisions.Jev.IntegrationTests.csproj).Path
