@@ -19,6 +19,14 @@ TypeSafe-style question contract documented by Microsoft. Choice, Score and
 Assess were smoke-tested live with API-key authentication on October 9, 2026.
 This does not establish production readiness or probability calibration.
 
+The current-source Ollama provider uses `/v1/systemone` with local decision
+models such as `nimble` (Ollama v0.35.0+), not chat models. Its native System One
+correction is unreleased; NuGet `0.6.0` still contains the old chat-logprob path.
+It preserves native confidence (distribution concentration) separately from
+label probability. The shared text API exposes one Choice, Score (2-10 ordered
+levels), or Assess question per call; image and batch requests are not exposed.
+See the [Foundry and Ollama response examples](https://github.com/elbruno/ElBruno.AI.Decisions/blob/main/docs/use-cases.md#example-responses).
+
 - Choice classification with full probability distributions and confidence.
 - Score evaluation against ordered rubrics, preserving fractional results and legends.
 - Noul proposition probability without hidden boolean thresholds.

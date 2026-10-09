@@ -50,14 +50,77 @@ a guarantee of safety. Foundry expresses this as a native Noul question.
 ## Run the same tasks locally with Ollama
 
 Use the [Ollama sample](../samples/11-OllamaLocal/README.md) to run all three
-operations. Models answer a letter corresponding to an option; the client
-normalizes first-token log probabilities across those letters.
-Choose supports 2-26 options on this provider.
+operations with Ollama v0.35.0+ and `ollama pull nimble`.
+The client calls `/v1/systemone` with native Choice, Score and Noul questions,
+not `/api/chat`. General chat and cloud models are not supported.
+Choose limits are model-specific (typically 2-26, at most 255 in the API).
+The shared Score API supports 2-10 levels; text requests must fit within 64 KiB.
 
-These numbers are conditional token probabilities, not proof of calibrated
-decision confidence. Small models can be unreliable for safety assessments.
+Confidence is `1 - H(p) / ln(N)`, a measure of distribution concentration,
+not proof of calibrated correctness. Models can be unreliable for safety assessments.
 Evaluate your chosen model on the actual workload; do not use the injection
 example as an automatic security gate.
+
+## Example responses
+
+Foundry and Ollama use the same named System One answer shape. The SDK names
+its single question `decision`. These are illustrative values, not recorded
+live outputs. Model names, usage, probabilities, and confidence vary.
+
+Foundry Choice (response excerpt):
+
+```json
+{
+  "answers": {
+    "decision": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": { "billing": 0.99, "support": 0.01 },
+      "confidence": 0.95
+    }
+  }
+}
+```
+
+Ollama Choice:
+
+```json
+{
+  "model": "nimble",
+  "answers": {
+    "decision": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": { "billing": 0.9, "support": 0.1 },
+      "confidence": 0.531
+    }
+  },
+  "usage": { "input_tokens": 174, "output_tokens": 1 }
+}
+```
+
+`ChoiceDecision.Confidence` preserves the provider confidence separately from
+`Probabilities["billing"]`. Do not equate the two values.
+
+Score answer (either provider, Ollama also returns the rubric legend):
+
+```json
+{
+  "type": "score",
+  "score": 1.7,
+  "legend": { "0": "Not helpful", "1": "Partly helpful", "2": "Very helpful" },
+  "probabilities": { "0": 0.1, "1": 0.1, "2": 0.8 },
+  "confidence": 0.4183
+}
+```
+
+The SDK exposes `Score = 1.7` and `LevelProbabilities = [0.1, 0.1, 0.8]`.
+Assess answer: `{"type":"noul","noul":0.98}`, exposed as
+`AssessmentDecision.Probability = 0.98`, not a Boolean.
+
+See [Ollama's decision guide](https://docs.ollama.com/capabilities/decision)
+and [API reference](https://docs.ollama.com/api/systemone).
+The native Ollama correction is currently source-only, not in NuGet `0.6.0`.
 
 ## Native Jev and advanced scenarios
 

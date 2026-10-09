@@ -1,7 +1,7 @@
 using ElBruno.AI.Decisions;
 using ElBruno.AI.Decisions.Ollama;
 
-// Usage: dotnet run -- [--model llama3.2] [--endpoint http://localhost:11434/]
+// Usage: dotnet run -- [--model nimble] [--endpoint http://localhost:11434/]
 string Arg(string name, string fallback)
 {
     int i = Array.IndexOf(args, name);
@@ -9,11 +9,11 @@ string Arg(string name, string fallback)
 }
 
 bool offline = args.Contains("--offline", StringComparer.Ordinal);
-if (offline) Console.WriteLine("OFFLINE: synthetic logprobs, no model or network calls.");
+if (offline) Console.WriteLine("OFFLINE: synthetic System One answers, no model or network calls.");
 using var http = offline ? new HttpClient(new OfflineHandler()) : new HttpClient();
 using var client = new OllamaDecisionClient(http, new OllamaDecisionOptions
 {
-    Model = Arg("--model", "llama3.2"),
+    Model = Arg("--model", "nimble"),
     Endpoint = new Uri(Arg("--endpoint", "http://localhost:11434/"))
 });
 
@@ -43,14 +43,23 @@ Console.WriteLine($"Helpfulness: {quality.Score:F2} of 2");
 
 sealed class OfflineHandler : HttpMessageHandler
 {
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+        var body = System.Text.Json.Nodes.JsonNode.Parse(await request.Content!.ReadAsStringAsync(cancellationToken))!;
+        string type = body["questions"]!["decision"]!["type"]!.GetValue<string>();
+        string answer = type switch
+        {
+            "choice" => """{"type":"choice","choice":"billing","probabilities":{"billing":0.9,"support":0.07,"sales":0.03},"confidence":0.6476}""",
+            "score" => """{"type":"score","score":1.7,"legend":{"0":"Not helpful","1":"Partly helpful","2":"Very helpful"},"probabilities":{"0":0.1,"1":0.1,"2":0.8},"confidence":0.4183}""",
+            "noul" => """{"type":"noul","noul":0.98}""",
+            _ => throw new InvalidOperationException($"Unexpected offline question type: {type}")
+        };
+        return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
         {
             Content = new StringContent(
-                """{"message":{"content":"A"},"logprobs":[{"token":"A","top_logprobs":[{"token":"A","logprob":-0.2},{"token":"B","logprob":-2},{"token":"C","logprob":-3}]}]}""",
+                $$$"""{"model":"nimble","answers":{"decision":{{{answer}}}},"usage":{"input_tokens":100,"output_tokens":1}}""",
                 System.Text.Encoding.UTF8, "application/json")
-        });
+        };
     }
 }

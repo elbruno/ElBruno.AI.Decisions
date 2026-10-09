@@ -136,4 +136,11 @@ use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
 for Azure CLI authentication, and remove any previously configured API key.
 
 - Foundry: user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`.
-- Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.
+- Ollama: `OllamaDecisionOptions` (endpoint defaults to `http://localhost:11434/`, `Model` required, for example `nimble`). Requires Ollama v0.35.0+ and a local System One decision model. A resource root appends `/v1/systemone`; a full invocation URL is preserved. Local requests need no API key. Text request bodies must fit within 64 KiB; oversized input is rejected, never truncated. Confidence is distribution concentration, not calibrated correctness. See the [official guide](https://docs.ollama.com/capabilities/decision).
+
+Foundry and Ollama return named `answers.decision` objects. Choice preserves
+the selected label, complete probability map, and separate confidence; Score
+returns the fractional expected zero-based rubric level; Assess reads the
+native numeric `noul` probability. See [example responses](use-cases.md#example-responses).
+Ollama's native System One correction is unreleased; the published `0.6.0`
+Ollama package still uses the previous chat-logprob implementation.

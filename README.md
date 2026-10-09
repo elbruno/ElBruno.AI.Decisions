@@ -1,20 +1,24 @@
 # ElBruno.AI.Decisions
 
 [![CI](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml)
-[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/elbruno/ElBruno.AI.Decisions?style=social)](https://github.com/elbruno/ElBruno.AI.Decisions)
+[![Twitter Follow](https://img.shields.io/twitter/follow/elbruno?style=social)](https://twitter.com/elbruno)
 
 One .NET API for **classification, routing, rubric scoring, and proposition
 assessment**, with probability distributions instead of generated text.
 Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 **Ollama**, or use the native **Jev** SDK.
 
-| Package | Role |
-| --- | --- |
-| `ElBruno.AI.Decisions` | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
-| `ElBruno.AI.Decisions.Foundry` | Microsoft-Decision-1 through Microsoft's SystemOne endpoint |
-| `ElBruno.AI.Decisions.Ollama` | Local decisions from first-token log probabilities |
-| `ElBruno.AI.Decisions.Jev` | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
+| Package | NuGet | Downloads | Role |
+| --- | --- | --- | --- |
+| `ElBruno.AI.Decisions` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
+| `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1 through Microsoft's SystemOne endpoint |
+| `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
+| `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
 **Early access:** version `0.6.0` is available on NuGet for
 [core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.0),
@@ -23,6 +27,9 @@ Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 [Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.0).
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
+**Ollama correction:** the native System One implementation below is currently
+in source, not in the published `0.6.0` package, which used a chat-logprob approach.
+Use a project reference to the current source until the next package release.
 
 ## 1. Foundry: Microsoft-Decision-1
 
@@ -51,6 +58,25 @@ var result = await client.ChooseAsync(
 Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
+**Illustrative response** (values vary by model and input):
+
+```json
+{
+  "answers": {
+    "decision": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": { "billing": 0.99, "support": 0.01 },
+      "confidence": 0.95
+    }
+  }
+}
+```
+
+Console output: `billing: 95.0%` (formatting follows your current culture).
+The SDK exposes `Choice`, `Probabilities`, and the provider's `Confidence`;
+confidence is not necessarily the selected label's probability.
+
 **URL template:** `https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone`.
 Resource roots automatically append that path; full invocation URLs are used
 unchanged. **Model:** use your deployment name (for example, `msft-decision-1`),
@@ -69,7 +95,7 @@ and [Microsoft's endpoint example](https://techcommunity.microsoft.com/blog/azur
 ## 2. Ollama: local decisions
 
 Reference package: `ElBruno.AI.Decisions.Ollama`.
-Start Ollama and pull a model, for example `ollama pull llama3.2`.
+Start **Ollama v0.35.0 or later** and pull a decision model: `ollama pull nimble`.
 The same task runs locally:
 
 ```csharp
@@ -78,7 +104,7 @@ using ElBruno.AI.Decisions.Ollama;
 using var client = new OllamaDecisionClient(new OllamaDecisionOptions
 {
     Endpoint = new Uri("http://localhost:11434/"),
-    Model = "llama3.2"
+    Model = "nimble"
 });
 
 var teams = new Dictionary<string, string?>
@@ -94,14 +120,44 @@ var result = await client.ChooseAsync(
 Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
-**URL template:** `http://<ollama-host>:11434/` (the client calls `/api/chat`).
-**Model:** an installed Ollama model name. Your server/model must return token
-logprobs. Choices support up to 26 options, mapped to letters.
-Probabilities are normalized across those letters; they are **not equivalent to
-the calibrated probabilities of a dedicated decision model**.
+**Illustrative response** (not a live test result):
+
+```json
+{
+  "model": "nimble",
+  "answers": {
+    "decision": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": { "billing": 0.9, "support": 0.1 },
+      "confidence": 0.531
+    }
+  },
+  "usage": { "input_tokens": 174, "output_tokens": 1 }
+}
+```
+
+Console output: `billing: 53.1%` (formatting follows your current culture).
+
+**URL template:** `http://<ollama-host>:11434/v1/systemone`.
+Resource roots append `/v1/systemone`; full invocation URLs are preserved.
+**Model:** a locally installed System One decision model such as `nimble`,
+Tev1, `clef`, or `clef-flash`, not a general-purpose chat or cloud model.
+No API key is required locally. Choice limits depend on the model (typically
+2-26 options; the API permits up to 255). The shared Score API supports 2-10
+ordered levels. Text requests are limited to 64 KiB and are never truncated.
+
+The client sends native `state` and named `questions` for Choice, Score, and
+Noul, without chat prompting, letter mapping, or token-logprob normalization.
+Ollama confidence measures distribution concentration,
+`1 - H(p) / ln(N)`, **not calibrated correctness**.
+Ollama also supports batched questions and image judgments with Clef models
+(v0.35.1+), but this shared text-only API does not expose those features.
 
 See the [complete Ollama sample](samples/11-OllamaLocal/README.md) and
-[provider configuration](docs/configuration.md#foundry-and-ollama-providers).
+[provider configuration](docs/configuration.md#foundry-and-ollama-providers),
+[official decision guide](https://docs.ollama.com/capabilities/decision), and
+[System One API reference](https://docs.ollama.com/api/systemone).
 
 ## 3. Jev: native decisions and advanced composition
 

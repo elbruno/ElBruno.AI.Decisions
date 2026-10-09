@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>ElBruno.AI.Decisions.Ollama</PackageId>
-    <Description>Local Ollama models for ElBruno.AI.Decisions: fast, calibrated Choice, Score, and Assess decisions. Probabilities come from token log-probabilities, so calibration depends on the model.</Description>
+    <Description>Local System One decision models for ElBruno.AI.Decisions through Ollama v0.35.0 or later: native Choice, Score, and Assess probabilities. Confidence is not calibrated correctness. Tentative early access.</Description>
     <PackageTags>ai;decision;ollama;local;offline;classification;routing;dotnet;tentative</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>nuget-icon.png</PackageIcon>
