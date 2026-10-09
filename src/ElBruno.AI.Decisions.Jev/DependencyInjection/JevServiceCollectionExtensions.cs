@@ -21,6 +21,7 @@ public static class JevServiceCollectionExtensions
             () => provider.GetRequiredService<IHttpClientFactory>().CreateClient(HttpClientName),
             provider.GetRequiredService<IOptions<JevClientOptions>>().Value));
         services.TryAddSingleton<IJevDecisionClient>(provider => provider.GetRequiredService<JevClient>());
+        services.TryAddSingleton<IDecisionClient>(provider => new JevDecisionClientAdapter(provider.GetRequiredService<IJevDecisionClient>()));
         return services.AddHttpClient(HttpClientName, client => client.Timeout = Timeout.InfiniteTimeSpan)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
     }
