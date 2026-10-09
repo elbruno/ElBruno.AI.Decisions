@@ -1,5 +1,10 @@
 # Building, checking, and releasing the package
 
+Version `0.6.0` of all four packages was published and verified from the public
+NuGet feed on October 9, 2026. Foundry Choice, Score and Assess were also
+smoke-tested live with API-key authentication; live Jev compatibility remains
+unverified.
+
 The release contains four packages: `ElBruno.AI.Decisions`,
 `ElBruno.AI.Decisions.Jev`, `ElBruno.AI.Decisions.Foundry`, and
 `ElBruno.AI.Decisions.Ollama`. Pack all four before running `Test-Package.ps1`.

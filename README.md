@@ -1,6 +1,6 @@
 # ElBruno.AI.Decisions
 
-[![CI](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Jev/actions/workflows/ci.yml)
+[![CI](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml)
 [![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -16,21 +16,38 @@ Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 | `ElBruno.AI.Decisions.Ollama` | Local decisions from first-token log probabilities |
 | `ElBruno.AI.Decisions.Jev` | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** these new package IDs are being prepared for publication.
-See [release status and instructions](docs/releasing.md) before installing.
+**Early access:** version `0.6.0` is available on NuGet for
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.0),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.0),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.0), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.0).
+See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
-The GitHub repository rename is also pending.
 
 ## 1. Foundry: Microsoft-Decision-1
 
 Reference package: `ElBruno.AI.Decisions.Foundry`.
-With `using ElBruno.AI.Decisions.Foundry;`, these five lines classify a request:
+This example classifies a request:
 
 ```csharp
-var options = new FoundryDecisionOptions { Endpoint = new Uri("https://<resource>.services.ai.azure.com"), Model = "<deployment-name>" };
-using var client = new FoundryDecisionClient(options);
-var teams = new Dictionary<string, string?> { ["billing"] = "Invoices and payments", ["support"] = "Technical problems" };
-var result = await client.ChooseAsync("Please correct my invoice.", "Which team should handle this request?", teams);
+using ElBruno.AI.Decisions.Foundry;
+
+using var client = new FoundryDecisionClient(new FoundryDecisionOptions
+{
+    Endpoint = new Uri("https://<resource>.services.ai.azure.com"),
+    Model = "<deployment-name>"
+});
+
+var teams = new Dictionary<string, string?>
+{
+    ["billing"] = "Invoices and payments",
+    ["support"] = "Technical problems"
+};
+var result = await client.ChooseAsync(
+    "Please correct my invoice.",
+    "Which team should handle this request?",
+    teams);
+
 Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
@@ -39,7 +56,7 @@ Resource roots automatically append that path; full invocation URLs are used
 unchanged. **Model:** use your deployment name (for example, `msft-decision-1`),
 not necessarily the catalog model name `Microsoft-Decision-1`.
 
-The example uses `AzureCliCredential` after `az login`. Set `options.ApiKey`
+The example uses `AzureCliCredential` after `az login`. Set `ApiKey` in the options
 from configuration to use key authentication instead; a supplied key takes
 precedence. Never hardcode credentials.
 
@@ -53,13 +70,27 @@ and [Microsoft's endpoint example](https://techcommunity.microsoft.com/blog/azur
 
 Reference package: `ElBruno.AI.Decisions.Ollama`.
 Start Ollama and pull a model, for example `ollama pull llama3.2`.
-With `using ElBruno.AI.Decisions.Ollama;`, the same task takes five lines:
+The same task runs locally:
 
 ```csharp
-var options = new OllamaDecisionOptions { Endpoint = new Uri("http://localhost:11434/"), Model = "llama3.2" };
-using var client = new OllamaDecisionClient(options);
-var teams = new Dictionary<string, string?> { ["billing"] = "Invoices and payments", ["support"] = "Technical problems" };
-var result = await client.ChooseAsync("Please correct my invoice.", "Which team should handle this request?", teams);
+using ElBruno.AI.Decisions.Ollama;
+
+using var client = new OllamaDecisionClient(new OllamaDecisionOptions
+{
+    Endpoint = new Uri("http://localhost:11434/"),
+    Model = "llama3.2"
+});
+
+var teams = new Dictionary<string, string?>
+{
+    ["billing"] = "Invoices and payments",
+    ["support"] = "Technical problems"
+};
+var result = await client.ChooseAsync(
+    "Please correct my invoice.",
+    "Which team should handle this request?",
+    teams);
+
 Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
