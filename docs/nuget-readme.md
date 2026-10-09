@@ -1,6 +1,6 @@
 # ElBruno.AI.Decisions.Jev
 
-A community .NET 10 client for the official TypeSafe AI Jev service.
+A community .NET 10 client for the official TypeSafe AI Jev service. It is one provider of the ElBruno.AI.Decisions family, which also includes `ElBruno.AI.Decisions` (provider-neutral `IDecisionClient`), `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1) and `ElBruno.AI.Decisions.Ollama` (local models).
 
 > **Tentative early-access release (0.6.0).** Live service compatibility remains
 > unverified, and live testing is deferred. Offline test and package validation

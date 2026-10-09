@@ -146,12 +146,15 @@ jobs:
           }
       - name: Pack exact release and verify Source Link and consumer
         run: |
-          $project = (Resolve-Path .\src\ElBruno.AI.Decisions.Jev\ElBruno.AI.Decisions.Jev.csproj).Path
+          $projects = @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama') |
+            ForEach-Object { (Resolve-Path ".\src\$_\$_.csproj").Path }
           $packages = Join-Path (Join-Path $PWD artifacts) packages
           $properties = @("-p:Version=$env:PACKAGE_VERSION", "-p:RepositoryUrl=$env:REPOSITORY_URL", "-p:RepositoryCommit=$env:RELEASE_COMMIT",
             "-p:PackageProjectUrl=$env:REPOSITORY_URL", "-p:PackageReleaseNotes=Tentative early-access SDK $env:PACKAGE_VERSION. Live Jev compatibility is unverified. Evaluate before production use. See $env:REPOSITORY_URL/releases.")
-          dotnet pack $project --configuration Release --no-restore --output $packages @properties
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($project in $projects) {
+            dotnet pack $project --configuration Release --no-restore --output $packages @properties
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
           & .\scripts\Test-Package.ps1 -PackageDirectory $packages -Version $env:PACKAGE_VERSION -RequireSourceLink -ExpectedRepositoryUrl $env:REPOSITORY_URL
       - uses: actions/upload-artifact@v4
         if: always()
@@ -204,9 +207,11 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
-          $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "ElBruno.AI.Decisions.Jev.$env:PACKAGE_VERSION.nupkg"
-          dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')) {
+            $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "$id.$env:PACKAGE_VERSION.nupkg"
+            dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300 --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Verify public indexing and exact restored package
         run: |
           & .\scripts\Test-Package.ps1 -PackageDirectory (Join-Path (Join-Path $PWD artifacts) packages) -Version $env:PACKAGE_VERSION -RequireSourceLink -ExpectedRepositoryUrl $env:REPOSITORY_URL -UsePublicFeed -IndexAttempts 20 -IndexDelaySeconds 60

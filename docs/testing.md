@@ -40,3 +40,8 @@ waiting for those checks; no new service calls are part of its release pipeline.
 Full generative-chat demos additionally require a separately configured chat
 provider. No amount of fixture testing proves account access, pricing, model
 availability, or the provider's undocumented behavior.
+
+## Live Foundry test
+
+The opt-in test in `tests/ElBruno.AI.Decisions.IntegrationTests` is skipped unless `DECISIONS_RUN_LIVE=1` and the Foundry user-secrets are configured.
+

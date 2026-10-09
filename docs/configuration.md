@@ -106,3 +106,9 @@ Inject credentials from the application's controlled secret provider. In a host 
 An explicitly configured endpoint must be an HTTPS **origin**, without a path, user information, query, or fragment. Test-only HTTP requires both a loopback host and `AllowInsecureLoopback = true`. Do not derive endpoint overrides from untrusted requests.
 
 The SDK has no native body logging. Applications should also configure HTTP/OTel logging to avoid sensitive headers and payloads. `RawRepresentation` and opt-in `IncludeErrorBody` are sensitive escape hatches, not safe default telemetry.
+
+## Foundry and Ollama providers
+
+- Foundry (Microsoft-Decision-1): user-secrets keys `Decisions:Foundry:Endpoint` (full HTTPS scoring URL), `Decisions:Foundry:ApiKey`, optional `Decisions:Foundry:Model` and `Decisions:Foundry:ApiKeyHeader`. Set them with `scripts/Set-FoundryUserSecrets.ps1`. The wire format is unverified until a live run.
+- Ollama: `OllamaDecisionOptions` (endpoint defaults to the local server, `Model` required). Probabilities come from first-token logprobs; calibration depends on the model.
+

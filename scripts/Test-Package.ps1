@@ -154,7 +154,7 @@ try {
     if ($xmlDocumentation.doc.assembly.name -ne $packageId -or $xmlDocumentation.doc.members.member.Count -lt 1) {
         throw 'Missing assembly XML documentation members.'
     }
-    if ([System.Text.Encoding]::UTF8.GetString($readmeBytes) -notmatch 'ElBruno\.AI\.Jev' -or
+    if ([System.Text.Encoding]::UTF8.GetString($readmeBytes) -notmatch 'ElBruno\.AI\.Decisions\.Jev' -or
         [System.Text.Encoding]::UTF8.GetString($licenseBytes) -notmatch 'MIT License') {
         throw 'Invalid packaged README or license content.'
     }
@@ -217,7 +217,7 @@ try {
     $escapedFeed = [System.Security.SecurityElement]::Escape($feed)
     $localSource = if ($UsePublicFeed) { '' } else { "<add key=`"packed`" value=`"$escapedFeed`" />" }
     $localMapping = if ($UsePublicFeed) { '' } else {
-        "<packageSource key=`"packed`"><package pattern=`"$packageId`" /></packageSource>"
+        "<packageSource key=`"packed`"><package pattern=`"$packageId`" /><package pattern=`"ElBruno.AI.Decisions`" /></packageSource>"
     }
     $configuration = @"
 <?xml version="1.0" encoding="utf-8"?>
