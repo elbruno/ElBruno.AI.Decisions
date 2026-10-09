@@ -72,11 +72,15 @@ jobs:
           }
       - name: Pack and test the isolated consumer
         run: |
-          $project = (Resolve-Path .\src\ElBruno.AI.Decisions.Jev\ElBruno.AI.Decisions.Jev.csproj).Path
           $packages = Join-Path (Join-Path $PWD artifacts) packages
-          dotnet pack $project --configuration Release --no-build --no-restore --output $packages
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & .\scripts\Test-Package.ps1 -PackageDirectory $packages
+          $ids = @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')
+          foreach ($id in $ids) {
+            dotnet pack ".\src\$id\$id.csproj" --configuration Release --no-build --no-restore --output $packages
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          foreach ($id in $ids) {
+            & .\scripts\Test-Package.ps1 -PackageDirectory $packages -PackageId $id
+          }
       - name: Upload test and package evidence
         if: always()
         uses: actions/upload-artifact@v4

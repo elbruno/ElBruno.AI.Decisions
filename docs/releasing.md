@@ -1,5 +1,18 @@
 # Building, checking, and releasing the package
 
+The release contains four packages: `ElBruno.AI.Decisions`,
+`ElBruno.AI.Decisions.Jev`, `ElBruno.AI.Decisions.Foundry`, and
+`ElBruno.AI.Decisions.Ollama`. Pack all four before running `Test-Package.ps1`.
+By default the script checks every package, including its assembly hash, version,
+symbols, dependencies and metadata, using a fresh exact-version consumer restore.
+Use `-PackageId` to select one package. The consumer references all four packages;
+its behavioral checks currently exercise Jev. Provider unit tests and synthetic
+offline samples cover Foundry and Ollama, not their live service compatibility.
+
+Do not deprecate `ElBruno.AI.Jev` before the replacement packages are publicly
+available and verified. Review NuGet trusted-publishing package scopes before
+publishing these new IDs; an existing policy may only authorize the old package.
+
 Preparing this infrastructure does **not** authorize a publication. Ordinary
 builds, CI, and package-consumer checks need no Jev credentials and make no Jev
 service calls. NuGet dependency restore requires network access. Live service

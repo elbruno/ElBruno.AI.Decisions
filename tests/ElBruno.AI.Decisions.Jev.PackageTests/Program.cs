@@ -8,12 +8,19 @@ using System.Text;
 using System.Text.Json;
 using ElBruno.AI.Decisions.Jev;
 
-if (args.Length != 5)
+if (args.Length != 6)
 {
-    throw new ArgumentException("Expected: package-version, assembly-sha256, portable-pdb-path, expected-repository-url-or-dash, expected-commit-or-dash.");
+    throw new ArgumentException("Expected: package-version, assembly-sha256, portable-pdb-path, expected-repository-url-or-dash, expected-commit-or-dash, package-id.");
 }
 
-Assembly assembly = typeof(JevClient).Assembly;
+Assembly assembly = args[5] switch
+{
+    "ElBruno.AI.Decisions" => typeof(ElBruno.AI.Decisions.IDecisionClient).Assembly,
+    "ElBruno.AI.Decisions.Foundry" => typeof(ElBruno.AI.Decisions.Foundry.FoundryDecisionClient).Assembly,
+    "ElBruno.AI.Decisions.Ollama" => typeof(ElBruno.AI.Decisions.Ollama.OllamaDecisionClient).Assembly,
+    "ElBruno.AI.Decisions.Jev" => typeof(JevClient).Assembly,
+    _ => throw new ArgumentException("Unknown package.")
+};
 string version = args[0];
 string numericVersion = version.Split('-')[0] + ".0";
 Check(assembly.GetName().Version?.ToString() == numericVersion, "Assembly version does not match the package.");
@@ -100,7 +107,7 @@ catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
 {
 }
 Check(handler.CallCount == 2, "Unexpected requests, retries, or cancellation behavior.");
-Console.WriteLine($"PASS: packed ElBruno.AI.Decisions.Jev {version}; versions, symbols, typed decisions, model discovery, and cancellation. No service network calls.");
+Console.WriteLine($"PASS: packed {args[5]} {version}; versions, assembly hash and symbols; Jev typed decisions, model discovery, and cancellation. No service network calls.");
 
 static void Check(bool condition, string message)
 {
