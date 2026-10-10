@@ -1,4 +1,36 @@
-# ElBruno.AI.Decisions.Jev visual assets
+# ElBruno.AI.Decisions visual assets
+
+## Current repository branding
+
+The multi-provider repository uses these new t2i-generated images:
+
+| File | Dimensions | Use |
+| --- | --- | --- |
+| `decisions-header-source.png` | 1792 x 1024 | Generated header master |
+| `decisions-header.png` | 1600 x 900 | Main README header and blog featured image |
+| `decisions-social-source.png` | 1792 x 1024 | Separately generated social master |
+| `decisions-social.png` | 1280 x 640 | GitHub social preview and blog social image |
+
+Both masters were generated with `t2i`, provider
+`foundry-gpt-image-25-flare`, model `gpt-image-2.5-flare`, on October 10, 2026
+(UTC). The requested size was 1536 x 1024; the provider returned 1792 x 1024.
+Final derivatives preserve aspect ratio using high-quality bicubic resizing
+and a navy matte, without cropping text. The social image is below 1 MB.
+
+Alt text: "ElBruno.AI.Decisions: Less chat. More decisions. Foundry, Ollama and
+Jev with Choose, Score and Assess."
+
+These are original community-project illustrations, not official vendor
+branding or evidence of model performance. Illustrated probability bars are
+decorative. The public prompts contained only the project name, provider names,
+tagline and visual instructions, never credentials or source code.
+
+The [blog introduction](../docs/blog/introducing-elbruno-ai-decisions.md) uses
+absolute GitHub image URLs for copying into a publishing platform.
+The older Jev assets and their reproduction script below remain unchanged
+for existing package icons and historical use.
+
+## Legacy Jev branding
 
 Original teal-and-violet braces and branching-choice artwork on deep navy,
 created for an **independent community .NET SDK for Jev AI**. This is not an

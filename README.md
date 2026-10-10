@@ -1,5 +1,7 @@
 # ElBruno.AI.Decisions
 
+![ElBruno.AI.Decisions: Less chat. More decisions. Foundry, Ollama and Jev.](images/decisions-header.png)
+
 [![CI](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/elbruno/ElBruno.AI.Decisions/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square&logo=nuget)](https://www.nuget.org/packages/ElBruno.AI.Decisions)
@@ -12,6 +14,8 @@ One .NET API for **classification, routing, rubric scoring, and proposition
 assessment**, with probability distributions instead of generated text.
 Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 **Ollama**, or use the native **Jev** SDK.
+
+Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisions.md).
 
 | Package | NuGet | Downloads | Role |
 | --- | --- | --- | --- |
