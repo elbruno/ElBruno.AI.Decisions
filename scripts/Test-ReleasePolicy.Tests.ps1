@@ -38,7 +38,10 @@ Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.0'; ApproveUnv
 Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.1'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.1' -ExpectedPublish $true
 Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.1'; Ref = 'v0.6.1' } -ExpectedVersion '0.6.1'
 Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-foreach ($version in @('0.6.2', '1.0.0', '0.6.0-beta.1')) {
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.2'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.2' -ExpectedPublish $true
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.2'; Ref = 'v0.6.2' } -ExpectedVersion '0.6.2'
+Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.2'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
+foreach ($version in @('0.6.3', '1.0.0', '0.6.0-beta.1')) {
     Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = "v$version"; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative 0.6.0'
 }
 foreach ($version in @('01.6.0', '0.6.0+build', '0.6.0;echo unsafe')) {

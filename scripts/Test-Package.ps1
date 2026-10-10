@@ -48,9 +48,15 @@ if ($RequireSourceLink -and $ExpectedRepositoryUrl -cnotmatch '^https://github\.
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'README.md') -PathType Leaf)) {
     throw 'Root README.md is not ready. Ask the metadata owner to finish it; this script will not create it.'
 }
-$nugetReadmePath = Join-Path (Join-Path $repositoryRoot 'docs') 'nuget-readme.md'
+$readmeFile = switch ($PackageId) {
+    'ElBruno.AI.Decisions' { 'nuget-core-readme.md' }
+    'ElBruno.AI.Decisions.Foundry' { 'nuget-foundry-readme.md' }
+    'ElBruno.AI.Decisions.Ollama' { 'nuget-ollama-readme.md' }
+    default { 'nuget-readme.md' }
+}
+$nugetReadmePath = Join-Path (Join-Path $repositoryRoot 'docs') $readmeFile
 if (-not (Test-Path -LiteralPath $nugetReadmePath -PathType Leaf)) {
-    throw 'docs/nuget-readme.md is not ready. The package requires its dedicated NuGet README.'
+    throw "docs/$readmeFile is not ready. The package requires its dedicated NuGet README."
 }
 if ([string]::IsNullOrWhiteSpace($PackageDirectory)) {
     $PackageDirectory = Join-Path (Join-Path $repositoryRoot 'artifacts') 'packages'
@@ -169,16 +175,19 @@ try {
     if ($xmlDocumentation.doc.assembly.name -ne $packageId -or $xmlDocumentation.doc.members.member.Count -lt 1) {
         throw 'Missing assembly XML documentation members.'
     }
-    if ([System.Text.Encoding]::UTF8.GetString($readmeBytes) -notmatch 'ElBruno\.AI\.Decisions\.Jev' -or
-        [System.Text.Encoding]::UTF8.GetString($licenseBytes) -notmatch 'MIT License') {
+    if ([System.Text.Encoding]::UTF8.GetString($licenseBytes) -notmatch 'MIT License') {
         throw 'Invalid packaged README or license content.'
     }
     $packagedReadme = [System.Text.Encoding]::UTF8.GetString($readmeBytes).TrimStart([char]0xFEFF).Replace("`r`n", "`n")
     $sourceReadme = [System.IO.File]::ReadAllText($nugetReadmePath).Replace("`r`n", "`n")
-    if ($packagedReadme -cne $sourceReadme) {
-        throw 'Packaged README.md must match docs/nuget-readme.md, not the root README. Use the matching release checkout for downloaded artifacts.'
+    if ($packagedReadme.Split("`n")[0] -cne "# $PackageId" -or
+        -not $packagedReadme.Contains("dotnet add package $PackageId --version $Version")) {
+        throw 'Packaged README must have the correct package heading and exact-version install command.'
     }
-    if ($Version -cin @('0.6.0', '0.6.1') -and $PackageId -ceq 'ElBruno.AI.Decisions.Jev') {
+    if ($packagedReadme -cne $sourceReadme) {
+        throw "Packaged README.md must match docs/$readmeFile. Use the matching release checkout for downloaded artifacts."
+    }
+    if ($Version -cin @('0.6.0', '0.6.1', '0.6.2') -and $PackageId -ceq 'ElBruno.AI.Decisions.Jev') {
         foreach ($text in @((Get-Metadata $manifest 'description').InnerText, (Get-Metadata $manifest 'releaseNotes').InnerText, $packagedReadme)) {
             if ($text -notmatch '\btentative\b' -or $text -notmatch '\bunverified\b') {
                 throw "Tentative $Version must disclose tentative status and unverified live compatibility in its description, release notes, and README."

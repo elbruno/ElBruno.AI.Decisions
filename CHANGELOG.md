@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.6.2 - 2026-10-09 (tentative)
+
+- Package dedicated core, Foundry and Ollama NuGet READMEs with correct installation commands, quickstarts, responses and documentation links instead of the Jev README.
+- Validate each packaged README's exact title, installation version and provider-specific source.
+- Remove the unsupported calibration claim from core package metadata. Runtime behavior is unchanged.
+
 ## 0.6.1 - 2026-10-09 (tentative)
 
 - Correct Ollama to the documented `/v1/systemone` API for local decision models (Ollama v0.35.0+), replacing chat-logprob prompting. Preserve native confidence and probabilities, validate score legends and bounded text requests, and update samples and response examples. Live local decision-model compatibility remains unverified.

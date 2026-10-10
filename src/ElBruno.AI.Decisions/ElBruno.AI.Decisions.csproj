@@ -2,7 +2,7 @@
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <PackageId>ElBruno.AI.Decisions</PackageId>
-    <Description>Provider-neutral .NET 10 abstractions for AI decision models: Choice, Score, and Assess with calibrated probabilities. Providers: Microsoft-Decision-1 on Foundry, Ollama, and Jev.</Description>
+    <Description>Provider-neutral .NET 10 abstractions for AI decision models: Choice, Score, and Assess with probabilities and provider confidence. Providers: Microsoft-Decision-1 on Foundry, Ollama, and Jev.</Description>
     <PackageTags>ai;decision;classification;routing;foundry;ollama;dotnet;microsoft-extensions-ai</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>nuget-icon.png</PackageIcon>
@@ -16,7 +16,7 @@
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Ollama" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\docs\nuget-readme.md" Pack="true" PackagePath="\README.md" />
+    <None Include="..\..\docs\nuget-core-readme.md" Pack="true" PackagePath="\README.md" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\..\images\nuget-icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>

@@ -31,7 +31,9 @@ the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0` and `0.6.1` versions.
+the explicitly authorized `0.6.0`, `0.6.1` and `0.6.2` versions.
+The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
+READMEs. NuGet package contents are immutable; this requires a new version.
 
 ## Local package check
 
@@ -69,11 +71,14 @@ The check:
   version, authors, description, tags, dependency entries, README/icon metadata,
   MIT expression and license file, `lib/net10.0` DLL/XML, portable PDB, and a
   128 x 128 PNG icon below 1 MB.
-- Confirms the archive's root `README.md` matches `docs\nuget-readme.md`,
+- Confirms the archive's root `README.md` matches the package-specific source:
+  `docs\nuget-core-readme.md`, `docs\nuget-foundry-readme.md`,
+  `docs\nuget-ollama-readme.md`, or Jev's `docs\nuget-readme.md`.
+  Checks the package heading and exact-version installation command,
   ignoring UTF-8 BOM and CRLF/LF differences. This preserves the dedicated
   NuGet page instead of accidentally packing the repository README's relative
   hero image. Check downloaded artifacts from their matching release checkout.
-- Requires tentative/unverified notices in the actual 0.6.0/0.6.1 package description,
+- Requires tentative/unverified notices in the actual 0.6.0/0.6.1/0.6.2 Jev package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
   `tests\ElBruno.AI.Decisions.Jev.PackageTests\.work`. Its only SDK dependency is an

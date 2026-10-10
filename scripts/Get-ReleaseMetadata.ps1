@@ -36,8 +36,8 @@ if ($VerifyPublishedRun) {
 }
 if ($ApproveUnverifiedPublication) {
     $isPreview = $Version -cmatch '^[0-9]+\.[0-9]+\.[0-9]+-preview(?:\.[0-9A-Za-z-]+)*\z'
-    if ($EventName -cne 'workflow_dispatch' -or (-not $isPreview -and $Version -cnotin @('0.6.0', '0.6.1'))) {
-        throw 'Live compatibility is unverified. Only an explicitly approved manual preview or the authorized tentative 0.6.0 or 0.6.1 may be published.'
+    if ($EventName -cne 'workflow_dispatch' -or (-not $isPreview -and $Version -cnotin @('0.6.0', '0.6.1', '0.6.2'))) {
+        throw 'Live compatibility is unverified. Only an explicitly approved manual preview or the authorized tentative 0.6.0, 0.6.1 or 0.6.2 may be published.'
     }
     $publishAllowed = $true
 }
