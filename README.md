@@ -20,11 +20,11 @@ Start with Microsoft-Decision-1 on **Foundry**, run models locally with
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.6.1` is available for all four NuGet packages:
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.1),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.1),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.1), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.1).
+**Early access:** version `0.6.2` is available for all four NuGet packages:
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.2),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.2),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.2), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.2).
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
 **Ollama correction:** native System One support requires `0.6.1` or later.

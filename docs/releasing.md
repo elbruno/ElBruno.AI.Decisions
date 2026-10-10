@@ -1,9 +1,10 @@
 # Building, checking, and releasing the package
 
-Version `0.6.1` of all four packages was published and verified from the public
-NuGet feed on October 9, 2026, including an exact-version consumer restore
+Version `0.6.2` of all four packages was published and verified from the public
+NuGet feed on October 10, 2026 (UTC), including an exact-version consumer restore
 against the validated release artifacts. See the successful
-[publication workflow](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38001591148).
+[publication workflow](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38012730953).
+Each NuGet page now displays its package-specific README.
 Foundry Choice, Score and Assess were also smoke-tested live with API-key
 authentication; live local Ollama decision-model and Jev compatibility remain
 unverified.
