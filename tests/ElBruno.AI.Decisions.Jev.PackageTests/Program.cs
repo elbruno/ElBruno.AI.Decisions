@@ -6,6 +6,7 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ElBruno.AI.Decisions;
 using ElBruno.AI.Decisions.Jev;
 
 if (args.Length != 6)
@@ -91,6 +92,8 @@ Check(response.GetAnswer(priority).Legend["1"].GetString() == "High", "Score leg
 Check(response.GetAnswer(escalation).Probability == 0.2, "Noul probability mismatch.");
 Check(response.Model == "package-test-model-resolved", "Resolved model mismatch.");
 Check(response.Usage.InputTokens == 12 && response.Usage.OutputTokens is null, "Nullable usage mismatch.");
+Check(response.Usage.TotalTokens is null && response.Usage.CachedTokens == 0 && response.Usage.ReasoningTokens == 2,
+    "Extended provider-reported usage mismatch.");
 Check(response.RequestId == "package-test-request", "Request ID mismatch.");
 Check(response.RawRepresentation?.GetProperty("future_field").GetBoolean() == true, "Unknown metadata was lost.");
 
@@ -107,6 +110,14 @@ catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
 {
 }
 Check(handler.CallCount == 2, "Unexpected requests, retries, or cancellation behavior.");
+var reportedUsage = new DecisionUsage(12, 3);
+Check(new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = 1 }).Usage is null &&
+    new ScoreDecision([.7, .3]).Usage is null && new AssessmentDecision(.8).Usage is null,
+    "Existing constructors must preserve unknown usage.");
+Check(new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = 1 }, null, reportedUsage).Usage == reportedUsage &&
+    new ScoreDecision([.7, .3], reportedUsage).Usage == reportedUsage &&
+    new AssessmentDecision(.8, reportedUsage).Usage?.TotalTokens is null,
+    "Shared decision results must preserve reported usage without deriving totals.");
 Console.WriteLine($"PASS: packed {args[5]} {version}; versions, assembly hash and symbols; Jev typed decisions, model discovery, and cancellation. No service network calls.");
 
 static void Check(bool condition, string message)
@@ -151,7 +162,7 @@ internal sealed class FakeJevHandler : HttpMessageHandler
                     "priority": { "type": "score", "score": 0.25, "probabilities": { "0": 0.75, "1": 0.25 }, "legend": { "0": "Low", "1": "High" }, "confidence": 0.8 },
                     "category": { "type": "choice", "choice": "Billing", "probabilities": { "Billing": 0.8, "Other": 0.2 }, "confidence": 0.7 }
                   },
-                  "usage": { "input_tokens": 12 },
+                  "usage": { "input_tokens": 12, "cached_tokens": 0, "reasoning_tokens": 2 },
                   "future_field": true
                 }
                 """;

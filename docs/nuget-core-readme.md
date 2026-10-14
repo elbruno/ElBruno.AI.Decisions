@@ -6,7 +6,7 @@ Assess a proposition. Results preserve probabilities and provider confidence;
 neither is a guarantee of correctness.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions --version 0.6.2
+dotnet add package ElBruno.AI.Decisions --version 0.6.3
 ```
 
 This package contains abstractions and `DecisionRoutingChatClient`, not a model
@@ -40,6 +40,17 @@ static async Task<string> RouteAsync(IDecisionClient client, string request)
 
 For example, `"Please correct my invoice."` may return `billing`. Actual results
 depend on the provider, model and input.
+
+## Provider-reported usage
+
+All three result types expose optional `Usage` (`DecisionUsage`) with nullable
+`InputTokens`, `OutputTokens`, `TotalTokens`, `ReasoningTokens` and `CachedTokens`.
+Missing usage is null; missing fields are null, while reported zero stays zero.
+`TotalTokens` is only a provider-reported total, never input plus output.
+Foundry and Ollama preserve native System One `usage`; the Jev adapter preserves
+native Jev usage. Availability depends on the endpoint and model. Token counts
+across models do not imply equivalent computation or cost.
+See [usage semantics](https://github.com/elbruno/ElBruno.AI.Decisions/blob/main/docs/decisions.md#provider-reported-token-usage).
 
 **Tentative early access:** evaluate before production use. Foundry Choice,
 Score and Assess passed a live API-key smoke test. Live local Ollama

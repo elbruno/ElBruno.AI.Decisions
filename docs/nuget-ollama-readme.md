@@ -5,7 +5,7 @@ Native local System One decisions through Ollama and the shared .NET 10
 not chat prompting or first-token logprobs.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Ollama --version 0.6.2
+dotnet add package ElBruno.AI.Decisions.Ollama --version 0.6.3
 ollama pull nimble
 ```
 
@@ -56,6 +56,13 @@ Resource roots append that path; full invocation URLs are preserved.
 Example output: `billing: 53.1%` (culture-dependent formatting).
 Confidence measures distribution concentration, `1 - H(p) / ln(N)`,
 not calibrated correctness or the selected-label probability.
+
+Choice, Score and Assess preserve top-level System One `usage` as optional
+`result.Usage`. The example reports `InputTokens = 174`, `OutputTokens = 1` and
+`TotalTokens = null`, not 175. Missing counters, including reasoning and cached
+tokens, stay null; reported zero stays zero. Availability depends on the local
+model and server version. Token counts across models do not imply equivalent
+computation or cost.
 
 Choice limits depend on the model (typically 2-26 options; API maximum 255).
 Score supports 2-10 ordered rubric levels and preserves fractional zero-based

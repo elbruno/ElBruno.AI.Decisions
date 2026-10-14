@@ -28,7 +28,8 @@ public sealed record JevChatDecisionMetadata(
     public UsageDetails Usage => new()
     {
         InputTokenCount = Decision.Usage.InputTokens,
-        OutputTokenCount = Decision.Usage.OutputTokens
+        OutputTokenCount = Decision.Usage.OutputTokens,
+        TotalTokenCount = Decision.Usage.TotalTokens
     };
 }
 
