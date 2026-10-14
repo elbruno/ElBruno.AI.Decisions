@@ -11,7 +11,7 @@ internal static class SystemOneProtocol
         ["instructions"] = instructions
     };
 
-    internal static JsonElement Answer(string body, string expectedType)
+    internal static (JsonElement Answer, DecisionUsage? Usage) Answer(string body, string expectedType)
     {
         try
         {
@@ -28,7 +28,7 @@ internal static class SystemOneProtocol
             if (type == "refusal") throw new DecisionException("The decision model refused the request.");
             if (type != expectedType)
                 throw new DecisionException("The decision answer does not match the requested question.");
-            return answer.Clone();
+            return (answer.Clone(), DecisionUsageReader.Read(root));
         }
         catch (JsonException ex)
         {

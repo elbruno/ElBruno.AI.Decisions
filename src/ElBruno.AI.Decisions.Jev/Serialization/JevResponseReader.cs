@@ -32,11 +32,20 @@ internal static class JevResponseReader
             });
         }
 
-        JevUsage usage = new();
-        if (root.TryGetProperty("usage", out JsonElement usageJson) && usageJson.ValueKind != JsonValueKind.Null)
+        JevUsage? usage = null;
+        try
         {
-            Object(usageJson);
-            usage = new JevUsage(TokenCount(usageJson, "input_tokens"), TokenCount(usageJson, "output_tokens"));
+            if (DecisionUsageReader.Read(root) is { } reported)
+                usage = new JevUsage(reported.InputTokens, reported.OutputTokens)
+                {
+                    TotalTokens = reported.TotalTokens,
+                    ReasoningTokens = reported.ReasoningTokens,
+                    CachedTokens = reported.CachedTokens
+                };
+        }
+        catch (DecisionException ex)
+        {
+            throw new JevProtocolException(ex.Message);
         }
 
         return new JevDecisionResponse(model, results, usage, requestId, root);
@@ -89,14 +98,6 @@ internal static class JevResponseReader
         }
 
         return values;
-    }
-
-    private static long? TokenCount(JsonElement value, string name)
-    {
-        if (!value.TryGetProperty(name, out JsonElement count) || count.ValueKind == JsonValueKind.Null) return null;
-        if (count.ValueKind != JsonValueKind.Number || !count.TryGetInt64(out long result) || result < 0)
-            throw new JevProtocolException("A reported token count is invalid.");
-        return result;
     }
 
     private static double Number(JsonElement value, string name)

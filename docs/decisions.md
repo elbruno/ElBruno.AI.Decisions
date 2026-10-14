@@ -48,6 +48,46 @@ Full native JSON, including unknown fields, is retained in `RawRepresentation`. 
 
 The SDK does not renormalize distributions or recompute server confidence.
 
+## Provider-reported token usage
+
+Starting in 0.6.3, `ChoiceDecision`, `ScoreDecision` and `AssessmentDecision`
+expose optional `Usage` with nullable `InputTokens`, `OutputTokens`, `TotalTokens`,
+`ReasoningTokens` and `CachedTokens`. Existing constructors remain available and
+produce null usage. The counters describe the whole request, not an individual
+label or rubric level.
+
+```csharp
+var result = await client.AssessAsync("The invoice is overdue.", "Payment is overdue.");
+long? input = result.Usage?.InputTokens;
+long? output = result.Usage?.OutputTokens;
+long? reportedTotal = result.Usage?.TotalTokens;
+```
+
+| Provider | Availability |
+| --- | --- |
+| Foundry | Preserves the top-level System One `usage` object. Verified native responses can report input/output without `total_tokens`. |
+| Ollama | Preserves native System One `usage` when the server/model reports it. Live local compatibility remains unverified. |
+| Jev | The adapter carries native `JevUsage` into all three shared result types. Native results retain their model, request ID and raw JSON. Live Jev compatibility remains unverified. |
+
+Missing or null usage produces null shared-result `Usage`. An empty usage object
+produces an object with unknown counters. Missing or null counters stay null;
+reported zero stays zero. Counts must be nonnegative 64-bit integers.
+`total_tokens` is preserved exactly, even if different from input plus output.
+No count is estimated, and no total is inferred. Reasoning and cached counts are
+read from `reasoning_tokens` / `cached_tokens`, or from
+`output_tokens_details.reasoning_tokens` / `input_tokens_details.cached_tokens`
+when the direct count is absent. Unknown fields are ignored.
+
+For cumulative usage, track each known counter separately and track requests with
+unknown counters rather than silently treating them as zero. Token counts from
+different models do not imply equivalent computation or cost; use the provider's
+pricing and model-specific accounting.
+
+No automatic OpenTelemetry instrumentation is added. Applications can record known
+input/output counts as `gen_ai.usage.input_tokens` and `gen_ai.usage.output_tokens`
+on their own activities without logging prompt text or credentials. Decision usage
+must remain separately attributable from any subsequent generative chat call.
+
 ## Known contract questions
 
 The HTTP reference and advanced/SDK docs disagree about some nullability. This preview accepts omitted/null instructions and structured/null descriptions as described by advanced docs, but requires non-null state as the HTTP reference does. Structured Score legends are preserved. Live tests include an explicit advanced-contract probe.

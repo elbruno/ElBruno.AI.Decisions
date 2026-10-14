@@ -16,7 +16,7 @@ public sealed class JevDecisionFunctionTests
                 new Dictionary<string, double> { ["0"] = .13, ["1"] = .37, ["2"] = .5 },
                 new Dictionary<string, JsonElement> { ["0"] = JsonSerializer.SerializeToElement(new { label = "low" }), ["1"] = JsonSerializer.SerializeToElement("middle"), ["2"] = JsonSerializer.SerializeToElement("high") }, .6),
             ["allowed"] = new JevNoulAnswer(.75, JsonSerializer.SerializeToElement(new { probability = .75, future = true }))
-        }, new JevUsage(9, null), "req", JsonSerializer.SerializeToElement(new { future = "kept" }));
+        }, new JevUsage(9, null) { TotalTokens = 12, ReasoningTokens = 2, CachedTokens = 0 }, "req", JsonSerializer.SerializeToElement(new { future = "kept" }));
         var client = new DecisionClientStub { Evaluate = (_, _) => Task.FromResult(response) };
         var tool = new JevDecisionFunction(client, "assess_ticket", "Assess a ticket.", DecisionFixtures.AssessmentRequest);
         using var source = new CancellationTokenSource();
@@ -43,6 +43,9 @@ public sealed class JevDecisionFunctionTests
         Assert.False(answers.GetProperty("allowed").TryGetProperty("confidence", out _));
         Assert.True(answers.GetProperty("allowed").GetProperty("rawRepresentation").GetProperty("future").GetBoolean());
         Assert.Equal(JsonValueKind.Null, result.GetProperty("usage").GetProperty("outputTokens").ValueKind);
+        Assert.Equal(12, result.GetProperty("usage").GetProperty("totalTokens").GetInt64());
+        Assert.Equal(2, result.GetProperty("usage").GetProperty("reasoningTokens").GetInt64());
+        Assert.Equal(0, result.GetProperty("usage").GetProperty("cachedTokens").GetInt64());
         Assert.Equal("req", result.GetProperty("requestId").GetString());
         Assert.Equal("kept", result.GetProperty("rawRepresentation").GetProperty("future").GetString());
     }

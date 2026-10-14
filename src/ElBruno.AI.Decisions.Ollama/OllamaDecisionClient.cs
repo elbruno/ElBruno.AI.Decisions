@@ -42,12 +42,12 @@ public sealed class OllamaDecisionClient : IDecisionClient, IDisposable
         DecisionRequestValidation.Choice(input, instructions, options);
         var question = SystemOneProtocol.Question("choice", instructions);
         question["criteria"] = new JsonObject(options.Select(o => new KeyValuePair<string, JsonNode?>(o.Key, JsonValue.Create(o.Value))));
-        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         Dictionary<string, double> distribution = SystemOneProtocol.Distribution(answer, options.Keys.ToArray(), 1e-3);
         string choice = SystemOneProtocol.String(answer, "choice");
         if (!distribution.ContainsKey(choice) || distribution[choice] < distribution.Values.Max())
             throw new DecisionException("The Ollama choice must be a highest-probability supplied option.");
-        return new ChoiceDecision(choice, distribution, SystemOneProtocol.Probability(answer, "confidence"));
+        return new ChoiceDecision(choice, distribution, SystemOneProtocol.Probability(answer, "confidence"), usage);
     }
 
     /// <inheritdoc />
@@ -57,10 +57,10 @@ public sealed class OllamaDecisionClient : IDecisionClient, IDisposable
         DecisionRequestValidation.Score(input, instructions, rubric);
         var question = SystemOneProtocol.Question("score", instructions);
         question["criteria"] = new JsonArray([.. rubric.Select(text => (JsonNode?)JsonValue.Create(text))]);
-        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         string[] indices = Enumerable.Range(0, rubric.Count).Select(i => i.ToString(CultureInfo.InvariantCulture)).ToArray();
         Dictionary<string, double> distribution = SystemOneProtocol.Distribution(answer, indices, 1e-3);
-        var result = new ScoreDecision([.. indices.Select(i => distribution[i])]);
+        var result = new ScoreDecision([.. indices.Select(i => distribution[i])], usage);
         if (!answer.TryGetProperty("score", out JsonElement score) || score.ValueKind != JsonValueKind.Number ||
             !score.TryGetDouble(out double value) || !double.IsFinite(value) || Math.Abs(value - result.Score) > 1e-3)
             throw new DecisionException("The Ollama score does not match its level probabilities.");
@@ -76,8 +76,8 @@ public sealed class OllamaDecisionClient : IDecisionClient, IDisposable
     public async Task<AssessmentDecision> AssessAsync(string input, string proposition, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Assess(input, proposition);
-        JsonElement answer = await EvaluateAsync(input, SystemOneProtocol.Question("noul", proposition), cancellationToken).ConfigureAwait(false);
-        return new AssessmentDecision(SystemOneProtocol.Probability(answer, "noul"));
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, SystemOneProtocol.Question("noul", proposition), cancellationToken).ConfigureAwait(false);
+        return new AssessmentDecision(SystemOneProtocol.Probability(answer, "noul"), usage);
     }
 
     /// <inheritdoc />
@@ -86,7 +86,7 @@ public sealed class OllamaDecisionClient : IDecisionClient, IDisposable
         if (_ownsHttp) _http.Dispose();
     }
 
-    private async Task<JsonElement> EvaluateAsync(string input, JsonObject question, CancellationToken cancellationToken)
+    private async Task<(JsonElement Answer, DecisionUsage? Usage)> EvaluateAsync(string input, JsonObject question, CancellationToken cancellationToken)
     {
         var body = new JsonObject
         {

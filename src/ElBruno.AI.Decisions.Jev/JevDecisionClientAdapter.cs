@@ -20,8 +20,9 @@ public sealed class JevDecisionClientAdapter : IDecisionClient
         DecisionRequestValidation.Choice(input, instructions, options);
         var key = new JevQuestionKey<JevChoiceAnswer>(Key);
         var request = new JevDecisionRequest(input).WithQuestion(key, new JevChoiceQuestion(instructions, options));
-        JevChoiceAnswer answer = (await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false)).GetAnswer(key);
-        return new ChoiceDecision(answer.Choice, answer.Probabilities, answer.Confidence);
+        JevDecisionResponse response = await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false);
+        JevChoiceAnswer answer = response.GetAnswer(key);
+        return new ChoiceDecision(answer.Choice, answer.Probabilities, answer.Confidence, Usage(response));
     }
 
     /// <inheritdoc />
@@ -31,14 +32,15 @@ public sealed class JevDecisionClientAdapter : IDecisionClient
         DecisionRequestValidation.Score(input, instructions, rubric);
         var key = new JevQuestionKey<JevScoreAnswer>(Key);
         var request = new JevDecisionRequest(input).WithQuestion(key, new JevScoreQuestion(instructions, rubric));
-        JevScoreAnswer answer = (await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false)).GetAnswer(key);
+        JevDecisionResponse response = await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false);
+        JevScoreAnswer answer = response.GetAnswer(key);
         double[] levels = new double[rubric.Count];
         for (int i = 0; i < levels.Length; i++)
         {
             levels[i] = answer.Probabilities.TryGetValue(i.ToString(System.Globalization.CultureInfo.InvariantCulture), out double p) ? p : 0;
         }
 
-        return new ScoreDecision(levels);
+        return new ScoreDecision(levels, Usage(response));
     }
 
     /// <inheritdoc />
@@ -47,7 +49,13 @@ public sealed class JevDecisionClientAdapter : IDecisionClient
         DecisionRequestValidation.Assess(input, proposition);
         var key = new JevQuestionKey<JevNoulAnswer>(Key);
         var request = new JevDecisionRequest(input).WithQuestion(key, new JevNoulQuestion(proposition));
-        JevNoulAnswer answer = (await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false)).GetAnswer(key);
-        return new AssessmentDecision(answer.Probability);
+        JevDecisionResponse response = await _client.EvaluateAsync(request, cancellationToken).ConfigureAwait(false);
+        JevNoulAnswer answer = response.GetAnswer(key);
+        return new AssessmentDecision(answer.Probability, Usage(response));
     }
+
+    private static DecisionUsage? Usage(JevDecisionResponse response) => response.HasUsage
+        ? new DecisionUsage(response.Usage.InputTokens, response.Usage.OutputTokens, response.Usage.TotalTokens,
+            response.Usage.ReasoningTokens, response.Usage.CachedTokens)
+        : null;
 }

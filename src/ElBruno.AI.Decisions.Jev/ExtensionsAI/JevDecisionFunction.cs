@@ -30,7 +30,10 @@ public sealed class JevDecisionFunction : AIFunction
               "type": "object",
               "properties": {
                 "inputTokens": { "type": ["integer", "null"] },
-                "outputTokens": { "type": ["integer", "null"] }
+                "outputTokens": { "type": ["integer", "null"] },
+                "totalTokens": { "type": ["integer", "null"] },
+                "reasoningTokens": { "type": ["integer", "null"] },
+                "cachedTokens": { "type": ["integer", "null"] }
               },
               "required": ["inputTokens", "outputTokens"]
             },
@@ -148,6 +151,9 @@ public sealed class JevDecisionFunction : AIFunction
             writer.WriteStartObject("usage");
             WriteCount(writer, "inputTokens", response.Usage.InputTokens);
             WriteCount(writer, "outputTokens", response.Usage.OutputTokens);
+            WriteCount(writer, "totalTokens", response.Usage.TotalTokens);
+            WriteCount(writer, "reasoningTokens", response.Usage.ReasoningTokens);
+            WriteCount(writer, "cachedTokens", response.Usage.CachedTokens);
             writer.WriteEndObject();
             writer.WriteStartObject("answers");
             foreach ((string key, JevAnswer answer) in response.Answers)

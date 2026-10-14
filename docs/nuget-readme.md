@@ -2,14 +2,14 @@
 
 A community .NET 10 client for the official TypeSafe AI Jev service. It is one provider of the ElBruno.AI.Decisions family, which also includes `ElBruno.AI.Decisions` (provider-neutral `IDecisionClient`), `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1) and `ElBruno.AI.Decisions.Ollama` (local models).
 
-> **Tentative early-access release (0.6.2).** Live Jev and local Ollama compatibility remains
+> **Tentative early-access release (0.6.3).** Live Jev and local Ollama compatibility remains
 > unverified, and live testing is deferred. Offline test and package validation
 > success does not prove real-service behavior. Evaluate before production use;
-> APIs may change before 1.0. NuGet classifies `0.6.2` as stable because it has
+> APIs may change before 1.0. NuGet classifies `0.6.3` as stable because it has
 > no prerelease suffix, but this package is still explicitly tentative.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.2
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.3
 ```
 
 ## Capabilities
@@ -34,6 +34,12 @@ See the [Foundry and Ollama response examples](https://github.com/elbruno/ElBrun
 - Explicit loopback-only local Laya inference with optional bearer authentication.
 - Microsoft.Extensions.AI function tools, chat routing, and assessment composition.
 - Async HTTP, cancellation, bounded responses, explicit errors and controlled retries.
+
+Native `JevUsage` and adapted Choice, Score and Assess results preserve reported
+input, output, total, reasoning and cached token counters. Missing counts remain
+null, not zero, and totals are never computed from input plus output. The adapter
+returns null `Usage` when native usage is absent. Availability is provider/model
+dependent; cross-model token counts do not imply equivalent computation or cost.
 
 Jev is not a generative chat or embedding service. This package does not invent image, speech, or realtime endpoints. It is not an official TypeSafe AI SDK and does not target the independent jevtypesafeai.com proxy.
 
