@@ -187,7 +187,7 @@ try {
     if ($packagedReadme -cne $sourceReadme) {
         throw "Packaged README.md must match docs/$readmeFile. Use the matching release checkout for downloaded artifacts."
     }
-    if ($Version -cin @('0.6.0', '0.6.1', '0.6.2', '0.6.3') -and $PackageId -ceq 'ElBruno.AI.Decisions.Jev') {
+    if ($Version -cin @('0.6.0', '0.6.1', '0.6.2', '0.6.3', '0.7.0') -and $PackageId -ceq 'ElBruno.AI.Decisions.Jev') {
         foreach ($text in @((Get-Metadata $manifest 'description').InnerText, (Get-Metadata $manifest 'releaseNotes').InnerText, $packagedReadme)) {
             if ($text -notmatch '\btentative\b' -or $text -notmatch '\bunverified\b') {
                 throw "Tentative $Version must disclose tentative status and unverified live compatibility in its description, release notes, and README."

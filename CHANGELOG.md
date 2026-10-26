@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0 - 2026-10-26 (tentative)
 
 - Add the Azure OpenAI Decisions API for gpt-6-luna, with typed text/image input,
   multi-question responses, per-question refusals, and usage reporting. Preserve

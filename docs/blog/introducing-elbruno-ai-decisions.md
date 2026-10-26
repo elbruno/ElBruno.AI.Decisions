@@ -145,11 +145,11 @@ Azure CLI/Entra checks for all three Microsoft-Decision-1 operations on October 
 
 ### Source update: gpt-6-luna batch and image decisions
 
-The next release adds the separate `/openai/v1/decisions` contract with
+Version 0.7.0 adds the separate `/openai/v1/decisions` contract with
 `FoundryDecisionApi.OpenAIDecisions` and the Foundry-specific `DecideAsync`.
 It supports named Predicate, Choice, and Score questions in one request, mixed
 text/image input, typed per-question refusals, and optional model/token usage.
-These additions are not available in the published 0.6.3 package.
+These additions require 0.7.0 or later, not 0.6.3.
 
 The [step-by-step source sample](../../samples/12-FoundryDecision/README.md)
 configures both deployments without overwriting settings, runs the batch with
@@ -373,7 +373,7 @@ Here is the current status:
 | Local Ollama decision-model compatibility | Published 0.6.2 passed a live smoke test with `nimble` on Ollama 0.35.1 on October 13, 2026; other models and versions unverified |
 | Live Jev compatibility | Unverified |
 | Shared Foundry/Ollama surface | One text question per call |
-| Foundry-specific gpt-6-luna API | Unreleased source supports batch/image requests; live batch, usage and synthetic image checks passed October 26, 2026 |
+| Foundry-specific gpt-6-luna API | Version 0.7.0 supports batch/image requests; live batch, usage and synthetic image checks passed October 26, 2026 |
 
 The shared Score API supports 2-10 rubric levels. Ollama text requests are bounded at 64 KiB. Model-specific choice limits still apply.
 

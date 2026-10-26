@@ -94,6 +94,7 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(questions);
+        questions = questions.ToArray();
         if (_options.Api != FoundryDecisionApi.OpenAIDecisions)
             throw new InvalidOperationException("DecideAsync requires FoundryDecisionApi.OpenAIDecisions.");
         if (questions.Count is < 1 or > 400)

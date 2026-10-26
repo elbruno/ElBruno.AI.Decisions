@@ -5,7 +5,7 @@ OpenAI Decisions API with the shared .NET 10 `IDecisionClient`: Choose, Score
 and Assess. This is a community SDK, not an official Microsoft SDK.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Foundry --version 0.6.3
+dotnet add package ElBruno.AI.Decisions.Foundry --version 0.7.0
 ```
 
 ## Quickstart
@@ -79,9 +79,8 @@ for image input or multi-question requests.
 
 ## Azure OpenAI Decisions API
 
-**Unreleased source addition:** the APIs in this section are not available in
-NuGet 0.6.3. Run the repository sample through project references until the next
-package release.
+**Available in 0.7.0:** the APIs in this section are additive. Existing
+Microsoft-Decision-1 SystemOne callers keep their current configuration.
 
 For `gpt-6-luna`, select the Azure OpenAI Decisions contract explicitly:
 

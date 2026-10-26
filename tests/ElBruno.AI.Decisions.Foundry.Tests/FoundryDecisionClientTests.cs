@@ -211,7 +211,7 @@ public sealed class FoundryDecisionClientTests
     public async Task OpenAIDecisionsMapsChoiceAndScorePayloadsAndAnswers()
     {
         var choiceHandler = new Handler((_, _) => Json(
-            """{"answers":[{"type":"choice","name":"decision","choice":"billing","probabilities":[{"value":"billing","probability":0.8},{"value":"support","probability":0.2}],"confidence":0.7}]}"""));
+            """{"usage":{"input_tokens":100,"output_tokens":2,"total_tokens":102},"answers":[{"type":"choice","name":"decision","choice":"billing","probabilities":[{"value":"billing","probability":0.8},{"value":"support","probability":0.2}],"confidence":0.7}]}"""));
         FoundryDecisionOptions options = Options();
         options.Api = FoundryDecisionApi.OpenAIDecisions;
         using var choiceHttp = new HttpClient(choiceHandler);
@@ -226,18 +226,20 @@ public sealed class FoundryDecisionClientTests
         Assert.Equal("billing", choice.Choice);
         Assert.Equal(.8, choice.Probabilities["billing"]);
         Assert.Equal(.7, choice.Confidence);
+        Assert.Equal(102L, choice.Usage?.TotalTokens);
         JsonNode choiceBody = JsonNode.Parse(choiceHandler.Body!)!;
         Assert.Equal("Payments", (string?)choiceBody["questions"]![0]!["choices"]![0]!["description"]);
         Assert.Null(choiceBody["questions"]![0]!["choices"]![1]!["description"]);
 
         var scoreHandler = new Handler((_, _) => Json(
-            """{"answers":[{"type":"score","name":"decision","score":1.6,"probabilities":[{"value":0,"label":"0","probability":0.1},{"value":1,"label":"1","probability":0.2},{"value":2,"label":"2","probability":0.7}],"confidence":0.55}]}"""));
+            """{"usage":{"input_tokens":80,"output_tokens":2,"total_tokens":82},"answers":[{"type":"score","name":"decision","score":1.6,"probabilities":[{"value":0,"label":"0","probability":0.1},{"value":1,"label":"1","probability":0.2},{"value":2,"label":"2","probability":0.7}],"confidence":0.55}]}"""));
         using var scoreHttp = new HttpClient(scoreHandler);
         using var scoreClient = new FoundryDecisionClient(scoreHttp, options);
 
         ScoreDecision score = await scoreClient.ScoreAsync("text", "rate", ["bad", "ok", "good"]);
 
         Assert.Equal(1.6, score.Score, 6);
+        Assert.Equal(82L, score.Usage?.TotalTokens);
         Assert.Equal([.1, .2, .7], score.LevelProbabilities);
         Assert.Equal("bad", (string?)JsonNode.Parse(scoreHandler.Body!)!["questions"]![0]!["levels"]![0]!["description"]);
     }

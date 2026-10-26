@@ -6,7 +6,7 @@ Assess a proposition. Results preserve probabilities and provider confidence;
 neither is a guarantee of correctness.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions --version 0.6.3
+dotnet add package ElBruno.AI.Decisions --version 0.7.0
 ```
 
 This package contains abstractions and `DecisionRoutingChatClient`, not a model

@@ -2,14 +2,14 @@
 
 A community .NET 10 client for the official TypeSafe AI Jev service. It is one provider of the ElBruno.AI.Decisions family, which also includes `ElBruno.AI.Decisions` (provider-neutral `IDecisionClient`), `ElBruno.AI.Decisions.Foundry` (Microsoft-Decision-1) and `ElBruno.AI.Decisions.Ollama` (local models).
 
-> **Tentative early-access release (0.6.3).** Live Jev compatibility remains
+> **Tentative early-access release (0.7.0).** Live Jev compatibility remains
 > unverified, and live Jev testing is deferred. Offline test and package validation
 > success does not prove real-service behavior. Evaluate before production use;
-> APIs may change before 1.0. NuGet classifies `0.6.3` as stable because it has
+> APIs may change before 1.0. NuGet classifies `0.7.0` as stable because it has
 > no prerelease suffix, but this package is still explicitly tentative.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Jev --version 0.6.3
+dotnet add package ElBruno.AI.Decisions.Jev --version 0.7.0
 ```
 
 ## Capabilities

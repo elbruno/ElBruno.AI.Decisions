@@ -6,28 +6,26 @@ It adds provider-reported token usage across the shared decision results.
 The [0.6.3 release](https://github.com/elbruno/ElBruno.AI.Decisions/releases/tag/v0.6.3)
 is tentative early access.
 
-### Next Foundry release
+### Foundry release 0.7.0
 
-The additive Azure OpenAI Decisions API warrants a new minor release,
-recommended **0.7.0**, rather than republishing an immutable package version.
+The additive Azure OpenAI Decisions API is released as minor version
+**0.7.0**, rather than republishing an immutable package version.
 It adds `FoundryDecisionApi.OpenAIDecisions`, typed `DecideAsync` batches,
 text/image input, question-level refusals, and optional model/usage metadata.
 Microsoft-Decision-1 keeps its default SystemOne contract.
 Both contracts passed live Azure CLI/Entra source checks on October 26, 2026;
 see [the precise scope](testing.md#live-foundry-test).
 
-Before publishing, integrate the existing 0.6.3 token-usage changes from `main`.
-Do not release from a pre-0.6.3 checkout that would drop that public API.
-Update the shared version, all four package installation examples, the
-changelog, and the exact-version release-policy allowlist and regression tests
-together. The currently authorized suffix-free versions do not automatically
-authorize a new one. Retain the tentative early-access notice because live Jev
-compatibility remains unverified.
+The release integrates the existing 0.6.3 token-usage changes from `main`,
+preserving that public API for all providers and for the OpenAI convenience
+methods. The shared version, four package installation examples, changelog,
+and exact-version release policy are updated together. The maintainer
+authorized publication on October 26, 2026. The tentative early-access notice
+remains because live Jev compatibility is unverified.
 
 Build and validate all four synchronized packages from an immutable release
 commit, run both sample 12 offline modes, and use the existing protected
-trusted-publishing workflow. Remove "unreleased" notices only when the APIs are
-available in the published packages. A source smoke test is not a substitute
+trusted-publishing workflow. A source smoke test is not a substitute
 for public-feed package/consumer verification.
 
 ### Previous 0.6.2 validation
@@ -66,7 +64,7 @@ the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2` and `0.6.3` versions.
+the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3` and `0.7.0` versions.
 The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
 READMEs. NuGet package contents are immutable; this requires a new version.
 The maintainer authorized tentative `0.6.3` on October 14, 2026 for
@@ -203,7 +201,7 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 **Publication is blocked by default while live compatibility is unverified.**
 Only a manual dispatch with `approve-unverified-publication=true` and either
-an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2` or `0.6.3`** or a
+an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3` or `0.7.0`** or a
 `major.minor.patch-preview[.identifier...]` version can reach the publishing
 job. That input acknowledges the absence of successful live validation;
 it is not an attestation that live tests passed. Other suffix-free versions

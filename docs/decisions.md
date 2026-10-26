@@ -2,7 +2,7 @@
 
 ## Foundry Azure OpenAI Decisions
 
-The Foundry-specific API below is an unreleased addition after NuGet 0.6.3.
+The Foundry-specific API below requires NuGet 0.7.0 or later.
 Use `FoundryDecisionApi.OpenAIDecisions` for gpt-6-luna. Microsoft-Decision-1
 continues to use the default `SystemOne` mode; `DecideAsync` rejects that mode
 rather than sending an incompatible payload.

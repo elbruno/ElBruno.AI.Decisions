@@ -24,13 +24,12 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.6.3` adds provider-reported token usage in all four NuGet packages:
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.3),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.3),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.3), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.3).
-The gpt-6-luna and rich Foundry APIs below are **unreleased additions**.
-Use this checkout's project-reference sample until the next NuGet publication.
+**Early access:** version `0.7.0` adds gpt-6-luna batch/image decisions while
+preserving the provider-reported token usage introduced in `0.6.3`:
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.7.0),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.7.0),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.7.0), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.7.0).
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
 **Ollama correction:** native System One support requires `0.6.1` or later.

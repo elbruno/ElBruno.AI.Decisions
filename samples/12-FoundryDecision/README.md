@@ -1,8 +1,8 @@
 # Foundry decisions, step by step
 
 This .NET 10 sample supports two distinct model contracts. The Azure OpenAI
-Decisions additions are currently **unreleased source**, not part of NuGet
-0.6.3. Run this checkout with project references to try them.
+Decisions additions require **NuGet 0.7.0 or later**, not 0.6.3.
+This sample runs the checkout through project references.
 
 | Mode | Deployment example | Route | Sample behavior |
 | --- | --- | --- | --- |

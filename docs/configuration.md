@@ -160,7 +160,7 @@ combined per request. Image URLs must be publicly accessible HTTPS URLs, or
 provide image data URLs.
 See [Use the Azure OpenAI Decisions API](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions).
 
-These additions are not in published NuGet 0.6.3. For a runnable source
+These additions require NuGet 0.7.0 or later. For a runnable source
 walkthrough covering both deployments, images, offline examples, and live tests,
 see [sample 12](../samples/12-FoundryDecision/README.md).
 

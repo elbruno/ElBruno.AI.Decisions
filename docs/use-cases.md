@@ -50,7 +50,7 @@ question; Azure OpenAI Decisions uses Predicate.
 
 ## Batch and image decisions with gpt-6-luna
 
-Use the unreleased Foundry-specific `DecideAsync` API to ask several independent
+Use the Foundry-specific `DecideAsync` API (0.7.0+) to ask several independent
 questions about the same evidence in one request. For example, route a damaged
 product report, assess whether it describes damage, and score severity together.
 For visual evidence, add text and image parts to a user message instead of
