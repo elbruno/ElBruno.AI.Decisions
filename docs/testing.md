@@ -79,6 +79,18 @@ dotnet run --project samples\12-FoundryDecision -- --offline
 dotnet run --project samples\12-FoundryDecision -- --offline --openai
 ```
 
+### Published 0.7.0 verification
+
+On October 26, 2026, [publication run 40374040985](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/40374040985)
+passed Linux/Windows validation, uploaded all four packages and symbols, and
+verified exact-version public NuGet restores and isolated consumers against
+the release artifacts. Public indexing required a wait after upload.
+A separate standalone consumer then restored `[0.7.0]` of the Foundry package
+from nuget.org and compiled and ran sample 12's SystemOne and OpenAI offline
+flows with no project references. The integrated release source also passed
+all three live Foundry tests before publication. The standalone package runs
+were synthetic, not additional live model calls.
+
 ## Live Ollama smoke test
 
 On October 13, 2026, a standalone .NET 10 consumer referencing the exact public

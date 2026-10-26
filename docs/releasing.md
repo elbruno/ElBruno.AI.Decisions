@@ -1,10 +1,17 @@
 # Building, checking, and releasing the package
 
-The latest published package family is **0.6.3**, verified from public NuGet
-by [publication run 38644542842](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38644542842).
-It adds provider-reported token usage across the shared decision results.
-The [0.6.3 release](https://github.com/elbruno/ElBruno.AI.Decisions/releases/tag/v0.6.3)
-is tentative early access.
+The latest published package family is **0.7.0**, verified from public NuGet
+by [publication run 40374040985](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/40374040985)
+on October 26, 2026. All four packages passed exact-version public-feed
+restore/consumer checks against the validated release artifacts after indexing.
+The [0.7.0 release](https://github.com/elbruno/ElBruno.AI.Decisions/releases/tag/v0.7.0)
+includes the package and symbol artifacts and is marked tentative early access.
+An additional standalone consumer restored the exact Foundry 0.7.0 package
+from nuget.org and compiled and ran both sample 12 offline modes without any
+project references.
+
+Version 0.6.3 previously introduced provider-reported token usage across the
+shared decision results. That API remains available in 0.7.0.
 
 ### Foundry release 0.7.0
 
