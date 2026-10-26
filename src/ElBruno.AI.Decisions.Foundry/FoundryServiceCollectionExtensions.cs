@@ -9,7 +9,7 @@ public static class FoundryServiceCollectionExtensions
     /// <summary>The named HTTP client used by the provider.</summary>
     public const string HttpClientName = "ElBruno.AI.Decisions.Foundry";
 
-    /// <summary>Registers <see cref="IDecisionClient"/> backed by Microsoft-Decision-1 on Foundry.</summary>
+    /// <summary>Registers <see cref="IDecisionClient"/> backed by the configured Foundry decision API.</summary>
     public static IHttpClientBuilder AddFoundryDecisions(this IServiceCollection services, Action<FoundryDecisionOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(services);

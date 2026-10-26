@@ -20,20 +20,24 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | Package | NuGet | Downloads | Role |
 | --- | --- | --- | --- |
 | `ElBruno.AI.Decisions` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
-| `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1 through Microsoft's SystemOne endpoint |
+| `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1/SystemOne and gpt-6-luna/Azure OpenAI Decisions |
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.6.2` is available for all four NuGet packages:
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.2),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.2),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.2), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.2).
+**Early access:** version `0.6.3` is available for all four NuGet packages:
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.3),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.3),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.3), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.6.3).
+The gpt-6-luna and rich Foundry APIs below are **unreleased additions**.
+Use this checkout's project-reference sample until the next NuGet publication.
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
 **Ollama correction:** native System One support requires `0.6.1` or later.
 The published `0.6.0` package used a chat-logprob approach; upgrade before using
-the Ollama example below. Live local decision-model compatibility remains unverified.
+the Ollama example below. The published `0.6.2` package passed a live
+`nimble` smoke test on Ollama `0.35.1` on October 13, 2026.
+See [validation scope and results](docs/testing.md#live-ollama-smoke-test).
 
 ## 1. Foundry: Microsoft-Decision-1
 
@@ -90,11 +94,50 @@ The example uses `AzureCliCredential` after `az login`. Set `ApiKey` in the opti
 from configuration to use key authentication instead; a supplied key takes
 precedence. Never hardcode credentials.
 
-Choice, Score and Assess passed a live API-key smoke test on October 9, 2026.
+Choice, Score and Assess passed a live API-key smoke test on October 9, 2026,
+and Azure CLI/Entra checks on October 26, 2026.
 That does not prove calibration or production readiness.
 See the [complete Foundry sample](samples/12-FoundryDecision/README.md),
 [configuration and user secrets](docs/configuration.md#foundry-and-ollama-providers),
 and [Microsoft's endpoint example](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742).
+
+### Azure OpenAI Decisions API: gpt-6-luna
+
+Select the separate Azure OpenAI Decisions contract explicitly. Use your
+deployment name for `Model`; the provider appends `/openai/v1/decisions` to a
+resource root.
+
+```csharp
+using ElBruno.AI.Decisions.Foundry;
+
+using var client = new FoundryDecisionClient(new FoundryDecisionOptions
+{
+    Api = FoundryDecisionApi.OpenAIDecisions,
+    Endpoint = new Uri("https://<resource>.openai.azure.com"),
+    Model = "<gpt-6-luna-deployment>"
+});
+
+var result = await client.ChooseAsync(
+    "Please correct my invoice.",
+    "Which team should handle this request?",
+    new Dictionary<string, string?> { ["billing"] = "Invoices and payments", ["support"] = "Technical problems" });
+```
+
+`OpenAIDecisions` maps `AssessAsync` to a `predicate` question, `ChooseAsync`
+to `choice`, and `ScoreAsync` to `score`. The existing default remains
+`SystemOne` for Microsoft-Decision-1 deployments. See the
+[Azure OpenAI Decisions documentation](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions).
+
+For image input or multiple questions per request, use the Foundry-specific
+`DecideAsync` API. It accepts text or user messages containing `input_text` and
+`input_image` parts, and returns typed answers correlated by question name,
+including per-question refusals and token usage. See the [Foundry sample](samples/12-FoundryDecision/README.md)
+for configuration and an offline-capable multi-question example.
+The [step-by-step walkthrough](samples/12-FoundryDecision/README.md) configures
+both deployments independently, runs batch/image examples, and enables the live
+tests. The gpt-6-luna batch, token usage, and a synthetic image request passed
+live Azure CLI/Entra checks on October 26, 2026. This does not establish model
+accuracy or calibration.
 
 ## 2. Ollama: local decisions
 

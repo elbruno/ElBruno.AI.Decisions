@@ -122,8 +122,9 @@ Provider choice and confidence are preserved. Invalid results fail explicitly.
 
 Choice, Score and Assess were verified against a real Microsoft-Decision-1
 deployment with API-key authentication on October 9, 2026. This smoke test does
-not establish calibration or production readiness. Microsoft-Decision-1 is not
-an OpenAI model; the former OpenAI and MAI Decisions routes have been removed.
+not establish calibration or production readiness. Microsoft-Decision-1 and
+the Azure OpenAI Decisions API are separate contracts.
+All three operations also passed Azure CLI/Entra checks on October 26, 2026.
 
 Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
 `Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
@@ -135,12 +136,65 @@ The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
 use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
 for Azure CLI authentication, and remove any previously configured API key.
 
+### Azure OpenAI Decisions API
+
+To call `gpt-6-luna`, set `FoundryDecisionOptions.Api` to
+`FoundryDecisionApi.OpenAIDecisions`. The provider posts to
+`/openai/v1/decisions`, using `input` and a typed `questions` array, and maps
+`predicate`, `choice`, and `score` answers onto the shared `IDecisionClient`
+results. Supply the HTTPS Azure OpenAI resource root or the full invocation URL,
+and use the deployment name for `Model`. Authentication uses the same `ApiKey`
+or Azure credential configuration as SystemOne. The default `SystemOne` mode
+and its Microsoft-Decision-1 request/response contract remain unchanged.
+“MAI-Decisions-1” here refers to Microsoft-Decision-1 through SystemOne, not a
+third endpoint.
+
+Microsoft documents `gpt-6-luna` as the only model currently supported by this
+API, with regional availability limitations. The Foundry-specific
+`FoundryDecisionClient.DecideAsync` supports text or user messages containing
+text/image parts, one to 400 named questions per request, answer correlation by
+name, question-level refusals, and token usage. The provider-neutral
+`IDecisionClient` remains text-only and sends one question per call.
+The service accepts PNG, JPG, WebP, and GIF images, up to 128 images and 32 MB
+combined per request. Image URLs must be publicly accessible HTTPS URLs, or
+provide image data URLs.
+See [Use the Azure OpenAI Decisions API](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/decisions).
+
+These additions are not in published NuGet 0.6.3. For a runnable source
+walkthrough covering both deployments, images, offline examples, and live tests,
+see [sample 12](../samples/12-FoundryDecision/README.md).
+
+The sample accepts separate settings so switching models does not overwrite
+the other deployment:
+
+| Key | Microsoft-Decision-1 | gpt-6-luna |
+| --- | --- | --- |
+| Endpoint | `Decisions:Foundry:Endpoint` | `Decisions:OpenAI:Endpoint` |
+| Deployment name | `Decisions:Foundry:Model` | `Decisions:OpenAI:Model` |
+| Optional key | `Decisions:Foundry:ApiKey` | `Decisions:OpenAI:ApiKey` |
+| Sample switch | Default (or `Decisions:Foundry:Api=SystemOne`) | `--openai` |
+| Optional image | Not supported by this sample's SystemOne flow | `Decisions:OpenAI:ImageUrl` |
+
+Do not use the project endpoint ending `/api/projects/<project>` as an inference
+endpoint. These APIs use the resource-level roots shown in the walkthrough.
+The separate `Decisions:OpenAI` section is a sample/test hosting convention, not
+an automatic library configuration lookup. `AddFoundryDecisions` callers must
+map their own settings to `FoundryDecisionOptions`.
+
 - Foundry: user-secrets keys `Decisions:Foundry:Endpoint` (HTTPS resource root or full invocation URL), optional `Decisions:Foundry:ApiKey`, deployment name in `Decisions:Foundry:Model`, and optional `Decisions:Foundry:ApiKeyHeader`.
 - Ollama: `OllamaDecisionOptions` (endpoint defaults to `http://localhost:11434/`, `Model` required, for example `nimble`). Requires Ollama v0.35.0+ and a local System One decision model. A resource root appends `/v1/systemone`; a full invocation URL is preserved. Local requests need no API key. Text request bodies must fit within 64 KiB; oversized input is rejected, never truncated. Confidence is distribution concentration, not calibrated correctness. See the [official guide](https://docs.ollama.com/capabilities/decision).
 
-Foundry and Ollama return named `answers.decision` objects. Choice preserves
+SystemOne mode in Foundry and Ollama returns named `answers.decision` objects.
+Azure OpenAI Decisions instead returns an `answers` array matched by question
+name. Choice preserves
 the selected label, complete probability map, and separate confidence; Score
 returns the fractional expected zero-based rubric level; Assess reads the
 native numeric `noul` probability. See [example responses](use-cases.md#example-responses).
 Ollama's native System One correction requires version `0.6.1` or later;
 the `0.6.0` package uses the previous chat-logprob implementation.
+
+Published `0.6.2` passed a live Choice, Score and Assess smoke test with `nimble`
+on Ollama `0.35.1` on October 13, 2026. The provider uses `HttpClient` directly
+and has no OllamaSharp dependency. See
+[validation scope and results](testing.md#live-ollama-smoke-test), including the
+missing-runner failure observed with an incomplete Windows installation.

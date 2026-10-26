@@ -42,8 +42,11 @@ For example, `"Please correct my invoice."` may return `billing`. Actual results
 depend on the provider, model and input.
 
 **Tentative early access:** evaluate before production use. Foundry Choice,
-Score and Assess passed a live API-key smoke test. Live local Ollama
-decision-model and Jev compatibility remain unverified. APIs may change before 1.0.
+Score and Assess passed a live API-key smoke test. Published Ollama `0.6.2`
+passed a live Choice, Score and Assess smoke test with `nimble` on Ollama
+`0.35.1` on October 13, 2026. Other Ollama models and live Jev compatibility
+remain unverified. These checks do not establish calibration or production
+readiness. APIs may change before 1.0.
 
 [Repository and quickstarts](https://github.com/elbruno/ElBruno.AI.Decisions) |
 [Use cases and response examples](https://github.com/elbruno/ElBruno.AI.Decisions/blob/main/docs/use-cases.md) |

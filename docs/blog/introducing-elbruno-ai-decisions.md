@@ -139,7 +139,27 @@ Set `FOUNDRY_API_KEY` in your shell using your secret-management workflow, then 
 
 Passing the resource root automatically appends the SystemOne path. You can also pass the complete invocation URL.
 
-Without an API key, the client uses `AzureCliCredential` after `az login`. The live smoke test used API-key authentication; CLI authentication has not been smoke-tested.
+Without an API key, the client uses `AzureCliCredential` after `az login`.
+The October 9 smoke test used API-key authentication. Current source also passed
+Azure CLI/Entra checks for all three Microsoft-Decision-1 operations on October 26, 2026.
+
+### Source update: gpt-6-luna batch and image decisions
+
+The next release adds the separate `/openai/v1/decisions` contract with
+`FoundryDecisionApi.OpenAIDecisions` and the Foundry-specific `DecideAsync`.
+It supports named Predicate, Choice, and Score questions in one request, mixed
+text/image input, typed per-question refusals, and optional model/token usage.
+These additions are not available in the published 0.6.3 package.
+
+The [step-by-step source sample](../../samples/12-FoundryDecision/README.md)
+configures both deployments without overwriting settings, runs the batch with
+`--openai`, and demonstrates image data URLs, offline fixtures, and live tests.
+The gpt-6-luna batch and synthetic-image checks passed live Azure CLI/Entra
+authentication on October 26, 2026. This verifies protocol compatibility, not
+calibration or image-understanding accuracy.
+
+The following illustrative response continues to describe Microsoft-Decision-1
+SystemOne, not the OpenAI answer-array contract.
 
 An **illustrative** provider response looks like this:
 
@@ -349,10 +369,11 @@ Here is the current status:
 | Area | Status |
 | --- | --- |
 | Foundry Choice, Score and Assess | Live API-key smoke test completed on October 9, 2026 |
-| Foundry CLI authentication | Implemented, not live smoke-tested |
-| Local Ollama decision-model compatibility | Unverified; covered by offline protocol checks and synthetic samples |
+| Foundry CLI authentication | Current source passed Microsoft-Decision-1 and gpt-6-luna live checks on October 26, 2026 |
+| Local Ollama decision-model compatibility | Published 0.6.2 passed a live smoke test with `nimble` on Ollama 0.35.1 on October 13, 2026; other models and versions unverified |
 | Live Jev compatibility | Unverified |
-| Shared Foundry/Ollama surface | One text question per call; no image or batch API exposed |
+| Shared Foundry/Ollama surface | One text question per call |
+| Foundry-specific gpt-6-luna API | Unreleased source supports batch/image requests; live batch, usage and synthetic image checks passed October 26, 2026 |
 
 The shared Score API supports 2-10 rubric levels. Ollama text requests are bounded at 64 KiB. Model-specific choice limits still apply.
 

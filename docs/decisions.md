@@ -1,5 +1,97 @@
 # Decisions and model semantics
 
+## Foundry Azure OpenAI Decisions
+
+The Foundry-specific API below is an unreleased addition after NuGet 0.6.3.
+Use `FoundryDecisionApi.OpenAIDecisions` for gpt-6-luna. Microsoft-Decision-1
+continues to use the default `SystemOne` mode; `DecideAsync` rejects that mode
+rather than sending an incompatible payload.
+
+```csharp
+using ElBruno.AI.Decisions.Foundry;
+
+using var client = new FoundryDecisionClient(new FoundryDecisionOptions
+{
+    Api = FoundryDecisionApi.OpenAIDecisions,
+    Endpoint = new Uri("https://<resource>.openai.azure.com"),
+    Model = "<gpt-6-luna-deployment>"
+});
+
+FoundryDecisionResult result = await client.DecideAsync(
+    FoundryDecisionInput.FromText("The package arrived with a cracked screen."),
+    [
+        new FoundryPredicateQuestion("damage", "Does the input describe product damage?"),
+        new FoundryChoiceQuestion("team", "Which team should handle this?", [
+            new FoundryDecisionChoice("support", "Product support"),
+            new FoundryDecisionChoice("billing", "Payments and refunds")
+        ]),
+        new FoundryScoreQuestion("severity", "How severe is the problem?", [
+            new FoundryDecisionLevel("low", "Cosmetic only"),
+            new FoundryDecisionLevel("high", "Product cannot be used")
+        ])
+    ]);
+
+foreach (FoundryDecisionAnswer answer in result.Answers)
+{
+    switch (answer)
+    {
+        case FoundryPredicateAnswer predicate:
+            Console.WriteLine($"{predicate.Name}: {predicate.Probability:P1}");
+            break;
+        case FoundryChoiceAnswer choice:
+            Console.WriteLine($"{choice.Name}: {choice.Choice} ({choice.Confidence:P1})");
+            break;
+        case FoundryScoreAnswer score:
+            Console.WriteLine($"{score.Name}: {score.Score:F2}");
+            break;
+        case FoundryRefusalAnswer refusal:
+            Console.WriteLine($"{refusal.Name}: refused, requires application review");
+            break;
+    }
+}
+if (result.Usage is { } usage)
+    Console.WriteLine($"Total tokens reported: {usage.TotalTokens}");
+```
+
+Question names must be unique, and each request must contain 1-400 questions.
+Answers are matched by name, validated against the question, and returned in
+request order even if the service reorders them. Choice retains every option
+probability and the separate provider confidence. Score retains ordered
+`Value`, `Label`, and `Probability` entries and computes an expected zero-based
+level, not a percentage. Predicate is a probability in [0,1], not a Boolean.
+
+Refusals are typed per-question answers. Do not cast every answer to its expected
+success type without checking for `FoundryRefusalAnswer`. The shared
+`ChooseAsync`, `ScoreAsync`, and `AssessAsync` methods instead throw
+`DecisionException` on refusal, since their result types cannot represent it.
+Missing usage or model metadata remains null. Token counts are not comparable
+cost or computation across models.
+
+For images, replace `FromText` with a user message:
+
+```csharp
+var input = FoundryDecisionInput.FromMessages([
+    FoundryDecisionMessage.User([
+        FoundryDecisionContentPart.Text("Inspect the attached product image."),
+        FoundryDecisionContentPart.Image("https://<public-host>/product.png")
+    ])
+]);
+```
+
+Image parts accept HTTPS URLs or supported image data URLs. The service must
+be able to fetch remote images without caller cookies or credentials. The
+library enforces 128 images maximum; the service additionally enforces valid
+image decoding and the 32 MB combined image limit. The client does not download
+remote images to validate them.
+
+The shared `IDecisionClient` remains text-only, one question per request, and
+maps Assess to Predicate in OpenAI mode. Existing SystemOne consumers need no
+configuration changes. See the
+[step-by-step sample](../samples/12-FoundryDecision/README.md) and
+[live validation scope](testing.md#live-foundry-test).
+
+## Native Jev semantics
+
 Reference: [official API](https://docs.typesafe.ai/api), [primitives](https://docs.typesafe.ai/primitives/choice), [models](https://docs.typesafe.ai/models).
 
 ## Typed questions

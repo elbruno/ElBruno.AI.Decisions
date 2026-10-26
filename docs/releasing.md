@@ -1,13 +1,46 @@
 # Building, checking, and releasing the package
 
+The latest published package family is **0.6.3**, verified from public NuGet
+by [publication run 38644542842](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38644542842).
+It adds provider-reported token usage across the shared decision results.
+The [0.6.3 release](https://github.com/elbruno/ElBruno.AI.Decisions/releases/tag/v0.6.3)
+is tentative early access.
+
+### Next Foundry release
+
+The additive Azure OpenAI Decisions API warrants a new minor release,
+recommended **0.7.0**, rather than republishing an immutable package version.
+It adds `FoundryDecisionApi.OpenAIDecisions`, typed `DecideAsync` batches,
+text/image input, question-level refusals, and optional model/usage metadata.
+Microsoft-Decision-1 keeps its default SystemOne contract.
+Both contracts passed live Azure CLI/Entra source checks on October 26, 2026;
+see [the precise scope](testing.md#live-foundry-test).
+
+Before publishing, integrate the existing 0.6.3 token-usage changes from `main`.
+Do not release from a pre-0.6.3 checkout that would drop that public API.
+Update the shared version, all four package installation examples, the
+changelog, and the exact-version release-policy allowlist and regression tests
+together. The currently authorized suffix-free versions do not automatically
+authorize a new one. Retain the tentative early-access notice because live Jev
+compatibility remains unverified.
+
+Build and validate all four synchronized packages from an immutable release
+commit, run both sample 12 offline modes, and use the existing protected
+trusted-publishing workflow. Remove "unreleased" notices only when the APIs are
+available in the published packages. A source smoke test is not a substitute
+for public-feed package/consumer verification.
+
+### Previous 0.6.2 validation
+
 Version `0.6.2` of all four packages was published and verified from the public
 NuGet feed on October 10, 2026 (UTC), including an exact-version consumer restore
 against the validated release artifacts. See the successful
 [publication workflow](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/38012730953).
 Each NuGet page now displays its package-specific README.
 Foundry Choice, Score and Assess were also smoke-tested live with API-key
-authentication; live local Ollama decision-model and Jev compatibility remain
-unverified.
+authentication. Published Ollama `0.6.2` passed a live `nimble` smoke test on
+Ollama `0.35.1` on October 13, 2026. Other Ollama models/versions and live Jev
+compatibility remain unverified. See [validation scope and results](testing.md#live-ollama-smoke-test).
 
 The release contains four packages: `ElBruno.AI.Decisions`,
 `ElBruno.AI.Decisions.Jev`, `ElBruno.AI.Decisions.Foundry`, and
@@ -16,7 +49,8 @@ By default the script checks every package, including its assembly hash, version
 symbols, dependencies and metadata, using a fresh exact-version consumer restore.
 Use `-PackageId` to select one package. The consumer references all four packages;
 its behavioral checks currently exercise Jev. Provider unit tests and synthetic
-offline samples cover Foundry and Ollama, not their live service compatibility.
+offline samples do not establish live service compatibility; the separate
+live smoke tests above supply that evidence only for their tested configurations.
 
 Do not deprecate `ElBruno.AI.Jev` before the replacement packages are publicly
 available and verified. Review NuGet trusted-publishing package scopes before

@@ -6,9 +6,10 @@ using System.Text.Json.Nodes;
 
 namespace ElBruno.AI.Decisions.Foundry;
 
-/// <summary>Calls Microsoft-Decision-1 through the Microsoft Foundry SystemOne API.</summary>
+/// <summary>Calls decision models through Microsoft Foundry or Azure OpenAI decision APIs.</summary>
 /// <remarks>
-/// Uses the Microsoft provider route and named TypeSafe-style questions documented in the Foundry launch article.
+/// Uses Microsoft-Decision-1's SystemOne API by default. Configure
+/// <see cref="FoundryDecisionOptions.Api"/> for the Azure OpenAI Decisions API.
 /// </remarks>
 public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
 {
@@ -80,6 +81,34 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         return new AssessmentDecision(SystemOneProtocol.Probability(answer, "noul"));
     }
 
+    /// <summary>Evaluates multiple named text or image questions in one Azure OpenAI Decisions request.</summary>
+    /// <param name="input">Text or user messages containing text and image parts.</param>
+    /// <param name="questions">Between one and 400 uniquely named predicate, choice, or score questions.</param>
+    /// <param name="cancellationToken">Cancels the request.</param>
+    /// <returns>Answers correlated to their questions and optional model usage.</returns>
+    /// <exception cref="InvalidOperationException">The client is configured for SystemOne rather than Azure OpenAI Decisions.</exception>
+    public async Task<FoundryDecisionResult> DecideAsync(
+        FoundryDecisionInput input,
+        IReadOnlyList<FoundryDecisionQuestion> questions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(questions);
+        if (_options.Api != FoundryDecisionApi.OpenAIDecisions)
+            throw new InvalidOperationException("DecideAsync requires FoundryDecisionApi.OpenAIDecisions.");
+        if (questions.Count is < 1 or > 400)
+            throw new ArgumentOutOfRangeException(nameof(questions), "A request must contain 1-400 questions.");
+        if (questions.Any(question => question is null))
+            throw new ArgumentException("Questions must not contain null values.", nameof(questions));
+        if (questions.Select(question => question.Name).Distinct(StringComparer.Ordinal).Count() != questions.Count)
+            throw new ArgumentException("Question names must be unique.", nameof(questions));
+
+        JsonObject payload = OpenAIDecisionsProtocol.CreateRequest(_options.Model, input, questions);
+        string response = await SendAsync(ResolveEndpoint(_options.Endpoint!, _options.Api), payload, cancellationToken)
+            .ConfigureAwait(false);
+        return OpenAIDecisionsProtocol.ParseResponse(response, questions);
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -89,16 +118,30 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     private async Task<JsonElement> EvaluateAsync(
         string input, JsonObject question, CancellationToken cancellationToken)
     {
-        Uri endpoint = _options.Endpoint!;
-        if (endpoint.AbsolutePath == "/") endpoint = new Uri(endpoint, "providers/microsoft/v1/systemone");
+        if (_options.Api == FoundryDecisionApi.OpenAIDecisions)
+        {
+            FoundryDecisionQuestion openAIQuestion = CreateOpenAIQuestion(question);
+            FoundryDecisionResult result = await DecideAsync(
+                FoundryDecisionInput.FromText(input), [openAIQuestion], cancellationToken).ConfigureAwait(false);
+            return OpenAIDecisionsProtocol.ToSystemOneAnswer(result.Answers[0]);
+        }
+
+        Uri endpoint = ResolveEndpoint(_options.Endpoint!, _options.Api);
+        JsonObject payload = new()
+        {
+            ["model"] = _options.Model,
+            ["state"] = input,
+            ["questions"] = new JsonObject { ["decision"] = question.DeepClone() }
+        };
+        string body = await SendAsync(endpoint, payload, cancellationToken).ConfigureAwait(false);
+        return SystemOneProtocol.Answer(body, question["type"]!.GetValue<string>());
+    }
+
+    private async Task<string> SendAsync(Uri endpoint, JsonObject payload, CancellationToken cancellationToken)
+    {
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
-            Content = new StringContent(new JsonObject
-            {
-                ["model"] = _options.Model,
-                ["state"] = input,
-                ["questions"] = new JsonObject { ["decision"] = question }
-            }.ToJsonString(), Encoding.UTF8, "application/json")
+            Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json")
         };
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(_options.Timeout);
@@ -137,7 +180,59 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             throw new DecisionException("The Foundry request failed.", ex);
         }
 
-        return SystemOneProtocol.Answer(body, question["type"]!.GetValue<string>());
+        return body;
+    }
+
+    private static FoundryDecisionQuestion CreateOpenAIQuestion(JsonObject systemOneQuestion)
+    {
+        string type = systemOneQuestion["type"]!.GetValue<string>();
+        string instructions = systemOneQuestion["instructions"]!.GetValue<string>();
+        return type switch
+        {
+            "noul" => new FoundryPredicateQuestion("decision", instructions),
+            "choice" => new FoundryChoiceQuestion(
+                "decision",
+                instructions,
+                systemOneQuestion["criteria"]!.AsObject().Select(option =>
+                    new FoundryDecisionChoice(option.Key, option.Value?.GetValue<string>()))),
+            "score" => new FoundryScoreQuestion(
+                "decision",
+                instructions,
+                systemOneQuestion["criteria"]!.AsArray().Select((level, index) =>
+                    new FoundryDecisionLevel(index.ToString(CultureInfo.InvariantCulture), level!.GetValue<string>()))),
+            _ => throw new DecisionException($"Unsupported decision question type '{type}'.")
+        };
+    }
+
+    private static Uri ResolveEndpoint(Uri endpoint, FoundryDecisionApi api)
+    {
+        string path = endpoint.AbsolutePath;
+        if (api == FoundryDecisionApi.SystemOne)
+        {
+            return path == "/" ? new Uri(endpoint, "providers/microsoft/v1/systemone") : endpoint;
+        }
+
+        if (api != FoundryDecisionApi.OpenAIDecisions)
+        {
+            throw new ArgumentOutOfRangeException(nameof(api), api, "Unsupported Foundry decision API.");
+        }
+
+        if (path == "/")
+        {
+            var builder = new UriBuilder(endpoint) { Path = "/openai/v1/decisions" };
+            return builder.Uri;
+        }
+        if (path.EndsWith("/openai/v1/", StringComparison.OrdinalIgnoreCase))
+        {
+            var builder = new UriBuilder(endpoint) { Path = path + "decisions" };
+            return builder.Uri;
+        }
+        if (path.EndsWith("/openai/v1", StringComparison.OrdinalIgnoreCase))
+        {
+            var builder = new UriBuilder(endpoint) { Path = path + "/decisions" };
+            return builder.Uri;
+        }
+        return endpoint;
     }
 
     private static async Task<string> ReadBoundedAsync(HttpResponseMessage response, CancellationToken cancellationToken)

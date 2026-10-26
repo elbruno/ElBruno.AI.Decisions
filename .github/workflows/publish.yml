@@ -145,6 +145,10 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             dotnet run --project $project.FullName --configuration Release --no-build --no-restore "-p:Version=$env:PACKAGE_VERSION" -- --offline
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            if ($project.Directory.Name -eq '12-FoundryDecision') {
+              dotnet run --project $project.FullName --configuration Release --no-build --no-restore "-p:Version=$env:PACKAGE_VERSION" -- --offline --openai
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
           }
       - name: Pack exact release and verify Source Link and consumer
         run: |

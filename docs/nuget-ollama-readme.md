@@ -63,8 +63,12 @@ scores. Assess returns native Noul proposition probability without a hidden
 boolean threshold. Text requests are limited to 64 KiB, never truncated.
 The shared API exposes one text question per call, not images or batches.
 
-**Tentative early access:** live local decision-model compatibility remains
-unverified. Offline contract checks do not prove model behavior.
+**Tentative early access:** published `0.6.2` passed a live Choice, Score and
+Assess smoke test with `nimble` on Ollama `0.35.1` on October 13, 2026.
+Other models and server versions remain unverified. This does not establish
+calibration or production readiness. Offline contract checks do not prove
+model behavior. See the
+[validation scope and results](https://github.com/elbruno/ElBruno.AI.Decisions/blob/main/docs/testing.md#live-ollama-smoke-test).
 Native System One support requires 0.6.1 or later; 0.6.0 used the old
 chat-logprob implementation.
 

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Add the Azure OpenAI Decisions API for gpt-6-luna, with typed text/image input,
+  multi-question responses, per-question refusals, and usage reporting. Preserve
+  the Microsoft-Decision-1 SystemOne API as the Foundry provider default.
+- Verify both decision APIs live with Azure CLI/Entra authentication on October
+  26, 2026: Microsoft-Decision-1 Choice/Assess/Score and gpt-6-luna multi-question
+  Predicate/Choice/Score, token usage, and text/image input.
+- Expand sample 12 with independent SystemOne/OpenAI configuration, all three
+  SystemOne operations, batch distributions, refusal handling, model/usage
+  output, and both synthetic offline flows. Document step-by-step setup,
+  image data URLs, live test commands, migration, and validation limits.
+- Record the published Ollama 0.6.2 package's live Choice, Score and Assess smoke
+  test with `nimble` on Ollama 0.35.1, including error checks and the incomplete
+  Windows installation's missing-runner failure. No runtime or dependency changes.
+
 ## 0.6.2 - 2026-10-09 (tentative)
 
 - Package dedicated core, Foundry and Ollama NuGet READMEs with correct installation commands, quickstarts, responses and documentation links instead of the Jev README.

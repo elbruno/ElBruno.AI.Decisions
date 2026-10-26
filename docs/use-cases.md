@@ -45,7 +45,22 @@ Console.WriteLine($"Relevant: {relevance.Probability:P1}");
 ```
 
 Assess is a probability of a proposition, not a boolean, a severity grade, or
-a guarantee of safety. Foundry expresses this as a native Noul question.
+a guarantee of safety. Foundry SystemOne expresses this as a native Noul
+question; Azure OpenAI Decisions uses Predicate.
+
+## Batch and image decisions with gpt-6-luna
+
+Use the unreleased Foundry-specific `DecideAsync` API to ask several independent
+questions about the same evidence in one request. For example, route a damaged
+product report, assess whether it describes damage, and score severity together.
+For visual evidence, add text and image parts to a user message instead of
+converting the image into an invented text description.
+
+See the [typed batch example](decisions.md#foundry-azure-openai-decisions) and
+[runnable walkthrough](../samples/12-FoundryDecision/README.md). The walkthrough
+keeps Microsoft-Decision-1 and gpt-6-luna deployments configured separately,
+handles per-question refusals, prints usage and distributions, and includes
+offline and opt-in live commands. This is distinct from Jev's native batch API.
 
 ## Run the same tasks locally with Ollama
 
@@ -63,7 +78,7 @@ example as an automatic security gate.
 
 ## Example responses
 
-Foundry and Ollama use the same named System One answer shape. The SDK names
+Foundry SystemOne and Ollama use the same named System One answer shape. The SDK names
 its single question `decision`. These are illustrative values, not recorded
 live outputs. Model names, usage, probabilities, and confidence vary.
 
@@ -145,7 +160,8 @@ instead route using any `IDecisionClient` plus caller-supplied chat clients.
 See [configuration](configuration.md) for secrets and authentication,
 [testing](testing.md) for opt-in live calls, and
 [release validation](releasing.md) for exact-package consumer checks.
-Foundry's documented route is `/providers/microsoft/v1/systemone`.
+Foundry's SystemOne route is `/providers/microsoft/v1/systemone`; the separate
+Azure OpenAI Decisions mode uses `/openai/v1/decisions` and an answer array.
 API-key authentication takes precedence over Azure CLI authentication.
 
 Never hardcode secrets. An offline sample exercises synthetic transport only.
