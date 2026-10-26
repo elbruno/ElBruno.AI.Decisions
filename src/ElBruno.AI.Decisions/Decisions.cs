@@ -7,6 +7,10 @@ public sealed class ChoiceDecision
 {
     /// <summary>Creates a choice result. The probabilities are preserved as reported by the provider.</summary>
     public ChoiceDecision(string choice, IReadOnlyDictionary<string, double> probabilities, double? confidence = null)
+        : this(choice, probabilities, confidence, null) { }
+
+    /// <summary>Creates a choice result with optional provider-reported usage.</summary>
+    public ChoiceDecision(string choice, IReadOnlyDictionary<string, double> probabilities, double? confidence, DecisionUsage? usage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(choice);
         Probabilities = DecisionValidation.Distribution(probabilities);
@@ -17,6 +21,7 @@ public sealed class ChoiceDecision
 
         Choice = choice;
         Confidence = confidence is { } c ? DecisionValidation.Probability(c, nameof(confidence)) : Probabilities[choice];
+        Usage = usage;
     }
 
     /// <summary>Gets the selected label.</summary>
@@ -27,6 +32,9 @@ public sealed class ChoiceDecision
 
     /// <summary>Gets provider confidence; defaults to the selected option's probability.</summary>
     public double Confidence { get; }
+
+    /// <summary>Gets provider-reported usage, or null when unavailable.</summary>
+    public DecisionUsage? Usage { get; }
 }
 
 /// <summary>The result of grading against an ordered rubric.</summary>
@@ -34,6 +42,10 @@ public sealed class ScoreDecision
 {
     /// <summary>Creates a score result from a probability per zero-based rubric level.</summary>
     public ScoreDecision(IReadOnlyList<double> levelProbabilities)
+        : this(levelProbabilities, null) { }
+
+    /// <summary>Creates a score result with optional provider-reported usage.</summary>
+    public ScoreDecision(IReadOnlyList<double> levelProbabilities, DecisionUsage? usage)
     {
         ArgumentNullException.ThrowIfNull(levelProbabilities);
         if (levelProbabilities.Count < 2)
@@ -45,6 +57,7 @@ public sealed class ScoreDecision
             .Select(p => DecisionValidation.Probability(p, nameof(levelProbabilities))).ToArray());
         double total = LevelProbabilities.Sum();
         Score = total > 0 ? LevelProbabilities.Select((p, i) => p * i).Sum() / total : 0;
+        Usage = usage;
     }
 
     /// <summary>Gets the expected zero-based rubric position, not rounded.</summary>
@@ -52,17 +65,29 @@ public sealed class ScoreDecision
 
     /// <summary>Gets the probability of each rubric level.</summary>
     public IReadOnlyList<double> LevelProbabilities { get; }
+
+    /// <summary>Gets provider-reported usage, or null when unavailable.</summary>
+    public DecisionUsage? Usage { get; }
 }
 
 /// <summary>The probability that a proposition is true. It is intentionally not thresholded.</summary>
 public sealed class AssessmentDecision
 {
     /// <summary>Creates an assessment in [0,1].</summary>
-    public AssessmentDecision(double probability) =>
+    public AssessmentDecision(double probability) : this(probability, null) { }
+
+    /// <summary>Creates an assessment with optional provider-reported usage.</summary>
+    public AssessmentDecision(double probability, DecisionUsage? usage)
+    {
         Probability = DecisionValidation.Probability(probability, nameof(probability));
+        Usage = usage;
+    }
 
     /// <summary>Gets the probability that the proposition is true.</summary>
     public double Probability { get; }
+
+    /// <summary>Gets provider-reported usage, or null when unavailable.</summary>
+    public DecisionUsage? Usage { get; }
 }
 
 internal static class DecisionValidation

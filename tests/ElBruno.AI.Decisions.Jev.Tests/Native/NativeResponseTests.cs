@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ElBruno.AI.Decisions.Jev.ExtensionsAI;
 
 namespace ElBruno.AI.Decisions.Jev.Tests.Native;
 
@@ -95,6 +96,31 @@ public sealed class NativeResponseTests
         var answer = (await NativeFixtures.EvaluateAsync(NativeFixtures.NoulJson.Replace("0.8", probability.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal), NativeFixtures.NoulRequest()))
             .GetAnswer(new JevQuestionKey<JevNoulAnswer>("safe"));
         Assert.Equal(probability, answer.Probability);
+    }
+
+    [Fact]
+    public async Task ExtendedUsagePreservesReportedCountsInNativeAndChatMetadata()
+    {
+        string json = NativeFixtures.NoulJson[..^1] +
+            ""","usage":{"input_tokens":12,"output_tokens":3,"total_tokens":20,"input_tokens_details":{"cached_tokens":0},"output_tokens_details":{"reasoning_tokens":2}}}""";
+        JevDecisionResponse response = await NativeFixtures.EvaluateAsync(json, NativeFixtures.NoulRequest());
+        Assert.Equal(20, response.Usage.TotalTokens);
+        Assert.Equal(2, response.Usage.ReasoningTokens);
+        Assert.Equal(0, response.Usage.CachedTokens);
+        var metadata = new JevChatDecisionMetadata(JevChatDecisionStage.InputAssessment, response);
+        Assert.Equal(20, metadata.Usage.TotalTokenCount);
+    }
+
+    [Fact]
+    public void ExtendedUsageRejectsNegativeCounts()
+    {
+        foreach (JevUsage usage in new[]
+        {
+            new JevUsage { TotalTokens = -1 },
+            new JevUsage { ReasoningTokens = -1 },
+            new JevUsage { CachedTokens = -1 }
+        })
+            Assert.Throws<ArgumentOutOfRangeException>(() => new JevDecisionResponse("m", new Dictionary<string, JevAnswer>(), usage));
     }
 
     [Theory]

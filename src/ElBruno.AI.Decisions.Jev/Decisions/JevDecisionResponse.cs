@@ -6,7 +6,17 @@ namespace ElBruno.AI.Decisions.Jev;
 /// <summary>Token usage. Missing values are unknown, not zero.</summary>
 /// <param name="InputTokens">Reported input token count.</param>
 /// <param name="OutputTokens">Reported output token count.</param>
-public sealed record JevUsage(long? InputTokens = null, long? OutputTokens = null);
+public sealed record JevUsage(long? InputTokens = null, long? OutputTokens = null)
+{
+    /// <summary>Gets the provider-reported total, never a computed sum.</summary>
+    public long? TotalTokens { get; init; }
+
+    /// <summary>Gets provider-reported reasoning tokens, when available.</summary>
+    public long? ReasoningTokens { get; init; }
+
+    /// <summary>Gets provider-reported cached input tokens, when available.</summary>
+    public long? CachedTokens { get; init; }
+}
 
 /// <summary>An evaluation's typed answers and native metadata.</summary>
 public sealed class JevDecisionResponse
@@ -17,10 +27,12 @@ public sealed class JevDecisionResponse
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
         ArgumentNullException.ThrowIfNull(answers);
         if (answers.Values.Any(answer => answer is null)) throw new ArgumentException("Answers cannot contain null.", nameof(answers));
-        if (usage?.InputTokens < 0 || usage?.OutputTokens < 0) throw new ArgumentOutOfRangeException(nameof(usage));
+        if (usage?.InputTokens < 0 || usage?.OutputTokens < 0 || usage?.TotalTokens < 0 ||
+            usage?.ReasoningTokens < 0 || usage?.CachedTokens < 0) throw new ArgumentOutOfRangeException(nameof(usage));
         Model = model;
         Answers = new ReadOnlyDictionary<string, JevAnswer>(new Dictionary<string, JevAnswer>(answers, StringComparer.Ordinal));
         Usage = usage ?? new JevUsage();
+        HasUsage = usage is not null;
         RequestId = requestId;
         RawRepresentation = rawRepresentation is { } value ? JevJson.Own(value) : null;
     }
@@ -33,6 +45,8 @@ public sealed class JevDecisionResponse
 
     /// <summary>Gets reported token usage.</summary>
     public JevUsage Usage { get; }
+
+    internal bool HasUsage { get; }
 
     /// <summary>Gets the x-typesafe-request-id header, when present.</summary>
     public string? RequestId { get; }

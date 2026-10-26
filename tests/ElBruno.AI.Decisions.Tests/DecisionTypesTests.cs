@@ -3,6 +3,37 @@ namespace ElBruno.AI.Decisions.Tests;
 public sealed class DecisionTypesTests
 {
     [Fact]
+    public void ExistingConstructorsRemainAvailableWithUnknownUsage()
+    {
+        Assert.Null(new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = 1 }).Usage);
+        Assert.Null(new ScoreDecision([.7, .3]).Usage);
+        Assert.Null(new AssessmentDecision(.8).Usage);
+        Assert.NotNull(typeof(ChoiceDecision).GetConstructor([typeof(string), typeof(IReadOnlyDictionary<string, double>), typeof(double?)]));
+        Assert.NotNull(typeof(ScoreDecision).GetConstructor([typeof(IReadOnlyList<double>)]));
+        Assert.NotNull(typeof(AssessmentDecision).GetConstructor([typeof(double)]));
+    }
+
+    [Fact]
+    public void UsageIsPreservedWithoutComputingATotal()
+    {
+        var usage = new DecisionUsage(12, 3);
+        Assert.Same(usage, new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = 1 }, null, usage).Usage);
+        Assert.Same(usage, new ScoreDecision([.7, .3], usage).Usage);
+        Assert.Same(usage, new AssessmentDecision(.8, usage).Usage);
+        Assert.Null(usage.TotalTokens);
+    }
+
+    [Fact]
+    public void UsageRejectsEveryNegativeCounter()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DecisionUsage(inputTokens: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DecisionUsage(outputTokens: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DecisionUsage(totalTokens: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DecisionUsage(reasoningTokens: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new DecisionUsage(cachedTokens: -1));
+    }
+
+    [Fact]
     public void ChoiceDefaultsConfidenceToSelectedProbability()
     {
         var d = new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = .6, ["b"] = .4 });

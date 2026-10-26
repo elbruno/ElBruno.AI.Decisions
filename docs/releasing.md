@@ -66,9 +66,12 @@ the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0`, `0.6.1` and `0.6.2` versions.
+the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2` and `0.6.3` versions.
 The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
 READMEs. NuGet package contents are immutable; this requires a new version.
+The maintainer authorized tentative `0.6.3` on October 14, 2026 for
+provider-reported token usage (issue #4), using the existing trusted-publishing
+workflow. This authorization does not claim new live Jev/Ollama verification.
 
 ## Local package check
 
@@ -113,7 +116,7 @@ The check:
   ignoring UTF-8 BOM and CRLF/LF differences. This preserves the dedicated
   NuGet page instead of accidentally packing the repository README's relative
   hero image. Check downloaded artifacts from their matching release checkout.
-- Requires tentative/unverified notices in the actual 0.6.0/0.6.1/0.6.2 Jev package description,
+- Requires tentative/unverified notices in the actual 0.6.0/0.6.1/0.6.2/0.6.3 Jev package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
   `tests\ElBruno.AI.Decisions.Jev.PackageTests\.work`. Its only SDK dependency is an
@@ -200,7 +203,7 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 **Publication is blocked by default while live compatibility is unverified.**
 Only a manual dispatch with `approve-unverified-publication=true` and either
-the explicitly authorized **`0.6.0`** or a
+an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2` or `0.6.3`** or a
 `major.minor.patch-preview[.identifier...]` version can reach the publishing
 job. That input acknowledges the absence of successful live validation;
 it is not an attestation that live tests passed. Other suffix-free versions

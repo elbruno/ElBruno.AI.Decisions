@@ -45,7 +45,7 @@ object? result = await tool.InvokeAsync(
 
 The JSON result contains:
 
-- `model`, nullable `requestId`, and `usage.inputTokens` / `usage.outputTokens` (null means unknown).
+- `model`, nullable `requestId`, and `usage.inputTokens` / `usage.outputTokens` / `usage.totalTokens` / `usage.reasoningTokens` / `usage.cachedTokens` (null means unknown; totals are never inferred).
 - `answers`, keyed by the original question IDs.
 - Choice: `type`, exact `choice`, full `probabilities`, and server `confidence`.
 - Score: `type`, fractional `score`, full `probabilities`, structured `legend`, and server `confidence`.

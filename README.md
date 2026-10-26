@@ -24,7 +24,7 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.6.3` is available for all four NuGet packages:
+**Early access:** version `0.6.3` adds provider-reported token usage in all four NuGet packages:
 [core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.6.3),
 [Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.6.3),
 [Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.6.3), and
@@ -84,6 +84,12 @@ Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 Console output: `billing: 95.0%` (formatting follows your current culture).
 The SDK exposes `Choice`, `Probabilities`, and the provider's `Confidence`;
 confidence is not necessarily the selected label's probability.
+
+Starting in 0.6.3, all three operations also expose optional `result.Usage` with
+nullable input, output, total, reasoning and cached token counters. Missing
+values stay null and reported zero stays zero. Totals are never inferred.
+Availability depends on the provider/model; cross-model token counts do not
+imply equivalent computation or cost. See [usage semantics](docs/decisions.md#provider-reported-token-usage).
 
 **URL template:** `https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone`.
 Resource roots automatically append that path; full invocation URLs are used

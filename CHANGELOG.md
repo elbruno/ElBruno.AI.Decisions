@@ -16,6 +16,13 @@
   test with `nimble` on Ollama 0.35.1, including error checks and the incomplete
   Windows installation's missing-runner failure. No runtime or dependency changes.
 
+## 0.6.3 - 2026-10-14 (tentative)
+
+- Expose optional provider-reported `DecisionUsage` on Choice, Score and Assessment results from Foundry, Ollama and the Jev adapter, preserving existing constructor signatures.
+- Preserve nullable input, output, total, reasoning and cached token counters, including reported zero. Never infer a service-reported total from input plus output.
+- Preserve extended usage in native Jev results and tools, with reported totals in separately attributable chat metadata. Reject malformed counters explicitly.
+- Add synthetic cross-provider protocol tests for all operations, missing/partial usage, large counts and compatibility. Document provider availability and cross-model token-count limitations.
+
 ## 0.6.2 - 2026-10-09 (tentative)
 
 - Package dedicated core, Foundry and Ollama NuGet READMEs with correct installation commands, quickstarts, responses and documentation links instead of the Jev README.

@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Foundry" />
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Ollama" />
+    <InternalsVisibleTo Include="ElBruno.AI.Decisions.Jev" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\docs\nuget-core-readme.md" Pack="true" PackagePath="\README.md" />

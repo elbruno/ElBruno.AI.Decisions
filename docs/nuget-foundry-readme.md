@@ -5,7 +5,7 @@ OpenAI Decisions API with the shared .NET 10 `IDecisionClient`: Choose, Score
 and Assess. This is a community SDK, not an official Microsoft SDK.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Foundry --version 0.6.2
+dotnet add package ElBruno.AI.Decisions.Foundry --version 0.6.3
 ```
 
 ## Quickstart
@@ -55,6 +55,13 @@ it takes precedence over CLI authentication. Never hardcode credentials.
 
 Example output: `billing: 95.0%` (culture-dependent formatting).
 Confidence is distinct from the selected-label probability.
+
+Choice, Score and Assess expose optional `result.Usage` from the top-level
+System One `usage` object. `InputTokens`, `OutputTokens`, `TotalTokens`,
+`ReasoningTokens` and `CachedTokens` remain null when unreported. Foundry may
+report input and output without a total; the SDK does not compute one.
+Reported zero is preserved. Availability varies by model and endpoint, and
+cross-model token counts do not imply equivalent computation or cost.
 
 **Tentative early access:** Choice, Score and Assess passed a live API-key
 smoke test on October 9, 2026. Current source also passed live Azure CLI/Entra

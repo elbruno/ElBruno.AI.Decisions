@@ -48,11 +48,11 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         DecisionRequestValidation.Choice(input, instructions, options);
         var question = SystemOneProtocol.Question("choice", instructions);
         question["criteria"] = new JsonObject(options.Select(o => new KeyValuePair<string, JsonNode?>(o.Key, JsonValue.Create(o.Value))));
-        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         Dictionary<string, double> probabilities = SystemOneProtocol.Distribution(answer, options.Keys.ToArray());
         string choice = SystemOneProtocol.String(answer, "choice");
         if (!probabilities.ContainsKey(choice)) throw new DecisionException("The decision choice is not a supplied option.");
-        return new ChoiceDecision(choice, probabilities, SystemOneProtocol.Probability(answer, "confidence"));
+        return new ChoiceDecision(choice, probabilities, SystemOneProtocol.Probability(answer, "confidence"), usage);
     }
 
     /// <inheritdoc />
@@ -62,10 +62,10 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         DecisionRequestValidation.Score(input, instructions, rubric);
         var question = SystemOneProtocol.Question("score", instructions);
         question["criteria"] = new JsonArray([.. rubric.Select(text => (JsonNode?)JsonValue.Create(text))]);
-        JsonElement answer = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, question, cancellationToken).ConfigureAwait(false);
         string[] indices = Enumerable.Range(0, rubric.Count).Select(i => i.ToString(CultureInfo.InvariantCulture)).ToArray();
         Dictionary<string, double> probabilities = SystemOneProtocol.Distribution(answer, indices);
-        var result = new ScoreDecision([.. indices.Select(i => probabilities[i])]);
+        var result = new ScoreDecision([.. indices.Select(i => probabilities[i])], usage);
         if (!answer.TryGetProperty("score", out JsonElement score) || !score.TryGetDouble(out double value) ||
             !double.IsFinite(value) || Math.Abs(value - result.Score) > 1e-6)
             throw new DecisionException("The decision score does not match its level probabilities.");
@@ -77,8 +77,8 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     public async Task<AssessmentDecision> AssessAsync(string input, string proposition, CancellationToken cancellationToken = default)
     {
         DecisionRequestValidation.Assess(input, proposition);
-        JsonElement answer = await EvaluateAsync(input, SystemOneProtocol.Question("noul", proposition), cancellationToken).ConfigureAwait(false);
-        return new AssessmentDecision(SystemOneProtocol.Probability(answer, "noul"));
+        (JsonElement answer, DecisionUsage? usage) = await EvaluateAsync(input, SystemOneProtocol.Question("noul", proposition), cancellationToken).ConfigureAwait(false);
+        return new AssessmentDecision(SystemOneProtocol.Probability(answer, "noul"), usage);
     }
 
     /// <summary>Evaluates multiple named text or image questions in one Azure OpenAI Decisions request.</summary>
@@ -115,7 +115,7 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         if (_ownsHttp) _http.Dispose();
     }
 
-    private async Task<JsonElement> EvaluateAsync(
+    private async Task<(JsonElement Answer, DecisionUsage? Usage)> EvaluateAsync(
         string input, JsonObject question, CancellationToken cancellationToken)
     {
         if (_options.Api == FoundryDecisionApi.OpenAIDecisions)
@@ -123,7 +123,10 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             FoundryDecisionQuestion openAIQuestion = CreateOpenAIQuestion(question);
             FoundryDecisionResult result = await DecideAsync(
                 FoundryDecisionInput.FromText(input), [openAIQuestion], cancellationToken).ConfigureAwait(false);
-            return OpenAIDecisionsProtocol.ToSystemOneAnswer(result.Answers[0]);
+            DecisionUsage? usage = result.Usage is { } reported
+                ? new DecisionUsage(reported.InputTokens, reported.OutputTokens, reported.TotalTokens)
+                : null;
+            return (OpenAIDecisionsProtocol.ToSystemOneAnswer(result.Answers[0]), usage);
         }
 
         Uri endpoint = ResolveEndpoint(_options.Endpoint!, _options.Api);
