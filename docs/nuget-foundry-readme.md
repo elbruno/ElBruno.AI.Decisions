@@ -5,22 +5,24 @@ OpenAI Decisions API with the shared .NET 10 `IDecisionClient`: Choose, Score
 and Assess. This is a community SDK, not an official Microsoft SDK.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Foundry --version 0.7.0
+dotnet add package ElBruno.AI.Decisions.Foundry --version 0.8.0
 ```
 
 ## Quickstart
 
-Deploy Microsoft-Decision-1 in Foundry and run `az login` for the example's
-default `AzureCliCredential` authentication:
+Deploy Microsoft-Decision-1 in Foundry and run `az login`. The endpoint-first
+constructor accepts either a Foundry project endpoint or resource root, along
+with the deployment name and an explicit token credential. Endpoint-first
+construction and project-endpoint support require version 0.8.0 or later:
 
 ```csharp
+using Azure.Identity;
 using ElBruno.AI.Decisions.Foundry;
 
-using var client = new FoundryDecisionClient(new FoundryDecisionOptions
-{
-    Endpoint = new Uri("https://<resource>.services.ai.azure.com"),
-    Model = "<deployment-name>"
-});
+using var client = new FoundryDecisionClient(
+    new Uri("https://<resource>.services.ai.azure.com/api/projects/<project>"),
+    "<deployment-name>",
+    new AzureCliCredential());
 var teams = new Dictionary<string, string?>
 {
     ["billing"] = "Invoices and payments",
@@ -32,11 +34,27 @@ Console.WriteLine($"{result.Choice}: {result.Confidence:P1}");
 ```
 
 **URL template:** `https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone`.
-Resource roots append that path; full invocation URLs are preserved.
-**Model:** your deployment name, for example `msft-decision-1`, not necessarily
-the catalog name `Microsoft-Decision-1`.
-For API-key authentication, supply `ApiKey` from application configuration;
-it takes precedence over CLI authentication. Never hardcode credentials.
+Both the resource root (`https://<resource>.services.ai.azure.com/`) and project
+endpoint (`https://<resource>.services.ai.azure.com/api/projects/<project>`)
+resolve to this resource-scoped route, with or without a trailing slash. Full
+invocation URLs and custom paths are preserved. **Deployment name:** the
+deployment identifier sent to the API, for example `msft-decision-1`, not
+necessarily the catalog name `Microsoft-Decision-1`. Supply any
+`Azure.Core.TokenCredential`, including `AzureCliCredential` for local
+development or `ManagedIdentityCredential` in a hosted app. The constructor
+uses the credential you provide without selecting or replacing one.
+
+### Advanced configuration and custom transports
+
+Use `FoundryDecisionOptions` for API keys, timeout configuration, or other
+advanced settings. A supplied API key takes precedence over
+`FoundryDecisionOptions.Credential`. `AddFoundryDecisions` uses the same
+resource/project endpoint resolution.
+
+The `HttpClient` overload borrows the caller's client and does not dispose it.
+Keep it alive while requests run and dispose it afterward. The Foundry client
+sets its timeout to infinite and enforces `FoundryDecisionOptions.Timeout` per
+request. The ordinary options constructor creates and owns its transport.
 
 ## Illustrative response
 

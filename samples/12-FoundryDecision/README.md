@@ -23,9 +23,11 @@ az login
 dotnet build samples\12-FoundryDecision
 ```
 
-Use resource inference endpoints, not the Foundry project URL
-`https://<resource>.services.ai.azure.com/api/projects/<project>`.
-Do not append a decision route to that project URL.
+For Microsoft-Decision-1/SystemOne, the project endpoint
+`https://<resource>.services.ai.azure.com/api/projects/<project>` and the
+resource root both resolve to the resource-level decision route. The
+Azure OpenAI Decisions mode still requires its Azure OpenAI resource root or
+an explicit invocation URL.
 
 ## 2. Configure both deployments without overwriting each other
 

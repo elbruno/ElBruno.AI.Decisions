@@ -5,7 +5,7 @@ Native local System One decisions through Ollama and the shared .NET 10
 not chat prompting or first-token logprobs.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Ollama --version 0.7.0
+dotnet add package ElBruno.AI.Decisions.Ollama --version 0.8.0
 ollama pull nimble
 ```
 

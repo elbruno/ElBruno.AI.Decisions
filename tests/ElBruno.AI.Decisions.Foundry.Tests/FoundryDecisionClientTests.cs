@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ElBruno.AI.Decisions.Foundry.Tests;
 
@@ -57,12 +58,19 @@ public sealed class FoundryDecisionClientTests
     {
         public HttpRequestMessage? Request { get; private set; }
         public string? Body { get; private set; }
+        public bool IsDisposed { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Request = request;
             Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
             return respond(request, Body ?? "");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) IsDisposed = true;
+            base.Dispose(disposing);
         }
     }
 
@@ -83,7 +91,18 @@ public sealed class FoundryDecisionClientTests
 
     [Theory]
     [InlineData("https://example.com/", "https://example.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/?api-version=preview", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone?api-version=preview")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo/", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo?api-version=preview", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone?api-version=preview")]
+    [InlineData("https://example.services.ai.azure.com/providers/microsoft/v1/systemone?api-version=preview", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone?api-version=preview")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo/custom?api-version=preview", "https://example.services.ai.azure.com/api/projects/demo/custom?api-version=preview")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/", "https://example.services.ai.azure.com/api/projects/")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo//", "https://example.services.ai.azure.com/api/projects/demo//")]
     [InlineData("https://example.com/custom?api-version=preview", "https://example.com/custom?api-version=preview")]
+    [InlineData("https://example.com/api/projects/demo?api-version=preview", "https://example.com/api/projects/demo?api-version=preview")]
     public async Task ResolvesResourceRootButPreservesExplicitUrl(string endpoint, string expected)
     {
         var handler = new Handler((_, _) => Json(PredicateReply));
@@ -93,6 +112,121 @@ public sealed class FoundryDecisionClientTests
         using var client = new FoundryDecisionClient(http, options);
         await client.AssessAsync("text", "proposition");
         Assert.Equal(expected, handler.Request!.RequestUri!.ToString());
+    }
+
+    [Theory]
+    [InlineData("https://example.services.ai.azure.com", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo/", "https://example.services.ai.azure.com/providers/microsoft/v1/systemone")]
+    public async Task EndpointFirstConstructorUsesExplicitCredentialAndDeploymentName(string endpoint, string expected)
+    {
+        var credential = new Credential();
+        var handler = new Handler((_, _) => Json(PredicateReply));
+        using var http = new HttpClient(handler);
+        using var client = new FoundryDecisionClient(
+            http, new Uri(endpoint), "decision-deployment", credential);
+
+        await client.AssessAsync("text", "safe");
+
+        Assert.Equal(expected, handler.Request!.RequestUri!.ToString());
+        Assert.Equal("synthetic-token", handler.Request.Headers.Authorization!.Parameter);
+        Assert.Equal(1, credential.Calls);
+        Assert.Equal("decision-deployment", (string?)JsonNode.Parse(handler.Body!)!["model"]);
+    }
+
+    [Fact]
+    public async Task EndpointFirstConstructorSupportsOpenAIDecisionsResourceEndpoint()
+    {
+        var credential = new Credential();
+        var handler = new Handler((_, _) => Json(OpenAIPredicateReply));
+        using var http = new HttpClient(handler);
+        using var client = new FoundryDecisionClient(
+            http,
+            new Uri("https://example.openai.azure.com/"),
+            "openai-deployment",
+            credential,
+            FoundryDecisionApi.OpenAIDecisions);
+
+        await client.AssessAsync("text", "safe");
+
+        Assert.Equal("https://example.openai.azure.com/openai/v1/decisions", handler.Request!.RequestUri!.ToString());
+        Assert.Equal("openai-deployment", (string?)JsonNode.Parse(handler.Body!)!["model"]);
+        Assert.Equal(1, credential.Calls);
+    }
+
+    [Fact]
+    public void EndpointFirstOwnedTransportDoesNotAuthenticateDuringConstruction()
+    {
+        var credential = new Credential();
+        using var client = new FoundryDecisionClient(
+            endpoint: new Uri("https://example.services.ai.azure.com/api/projects/demo"),
+            deploymentName: "decision-deployment",
+            credential: credential);
+
+        Assert.Equal(0, credential.Calls);
+    }
+
+    [Fact]
+    public void EndpointFirstConstructorRequiresExplicitCredentialAndDeployment()
+    {
+        var endpoint = new Uri("https://example.services.ai.azure.com/");
+        var credential = new Credential();
+        Assert.Throws<ArgumentNullException>(() => new FoundryDecisionClient(endpoint, "deployment", null!));
+        Assert.Throws<ArgumentNullException>(() => new FoundryDecisionClient(null!, "deployment", credential));
+        Assert.Throws<ArgumentNullException>(() => new FoundryDecisionClient(endpoint, null!, credential));
+        Assert.Throws<ArgumentException>(() => new FoundryDecisionClient(endpoint, "", credential));
+        Assert.Throws<ArgumentException>(() => new FoundryDecisionClient(endpoint, "  ", credential));
+    }
+
+    [Theory]
+    [InlineData(FoundryDecisionApi.SystemOne)]
+    [InlineData(FoundryDecisionApi.OpenAIDecisions)]
+    public async Task DisposingClientDoesNotDisposeCallerManagedTransport(FoundryDecisionApi api)
+    {
+        var handler = new Handler((_, _) => Json(api == FoundryDecisionApi.SystemOne ? PredicateReply : OpenAIPredicateReply));
+        using var http = new HttpClient(handler);
+        using (var client = new FoundryDecisionClient(http, new Uri("https://example.invalid"), "deployment", new Credential(), api))
+        {
+            await client.AssessAsync("text", "safe");
+        }
+
+        Assert.False(handler.IsDisposed);
+        using HttpResponseMessage response = await http.GetAsync("https://example.invalid/health");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo/")]
+    public void OpenAIDecisionsRejectsFoundryProjectEndpoint(string endpoint)
+    {
+        var options = Options();
+        options.Endpoint = new Uri(endpoint);
+        options.Api = FoundryDecisionApi.OpenAIDecisions;
+        using var http = new HttpClient(new Handler((_, _) => Json(OpenAIPredicateReply)));
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(() => new FoundryDecisionClient(http, options));
+
+        Assert.Contains("supported only with the SystemOne API", exception.Message);
+    }
+
+    [Fact]
+    public async Task DependencyInjectionUsesProjectEndpointResolution()
+    {
+        var handler = new Handler((_, _) => Json(PredicateReply));
+        var services = new ServiceCollection();
+        services.AddFoundryDecisions(options =>
+        {
+            options.Endpoint = new Uri("https://example.services.ai.azure.com/api/projects/demo");
+            options.Model = "decision-deployment";
+            options.ApiKey = "test-key";
+        }).ConfigurePrimaryHttpMessageHandler(() => handler);
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        await provider.GetRequiredService<IDecisionClient>().AssessAsync("text", "safe");
+
+        Assert.Equal("https://example.services.ai.azure.com/providers/microsoft/v1/systemone", handler.Request!.RequestUri!.ToString());
     }
 
     [Theory]
@@ -187,12 +321,16 @@ public sealed class FoundryDecisionClientTests
 
     [Theory]
     [InlineData("https://example.com/", "https://example.com/openai/v1/decisions")]
+    [InlineData("https://example.openai.azure.com", "https://example.openai.azure.com/openai/v1/decisions")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/demo/custom?api-version=preview", "https://example.services.ai.azure.com/api/projects/demo/custom?api-version=preview")]
+    [InlineData("https://example.services.ai.azure.com/api/projects/", "https://example.services.ai.azure.com/api/projects/")]
     [InlineData("https://example.com/openai/v1/", "https://example.com/openai/v1/decisions")]
     [InlineData("https://example.com/openai/v1/?api-version=preview", "https://example.com/openai/v1/decisions?api-version=preview")]
     [InlineData("https://example.com/?api-version=preview", "https://example.com/openai/v1/decisions?api-version=preview")]
     [InlineData("https://example.com/openai/v1?api-version=preview", "https://example.com/openai/v1/decisions?api-version=preview")]
     [InlineData("https://example.com/openai/v1/decisions?api-version=preview", "https://example.com/openai/v1/decisions?api-version=preview")]
     [InlineData("https://example.com/custom?api-version=preview", "https://example.com/custom?api-version=preview")]
+    [InlineData("https://example.com/api/projects/demo?api-version=preview", "https://example.com/api/projects/demo?api-version=preview")]
     public async Task OpenAIDecisionsResolvesResourceRootsAndPreservesFullUrls(string endpoint, string expected)
     {
         var handler = new Handler((_, _) => Json(OpenAIPredicateReply));
@@ -484,5 +622,19 @@ public sealed class FoundryDecisionClientTests
         var options = new FoundryDecisionOptions { Endpoint = endpoint is null ? null : new Uri(endpoint), ApiKey = key };
 
         Assert.Throws<ArgumentException>(() => new FoundryDecisionClient(options));
+    }
+
+    [Theory]
+    [InlineData("relative", FoundryDecisionApi.SystemOne)]
+    [InlineData("relative", FoundryDecisionApi.OpenAIDecisions)]
+    [InlineData("http://example.services.ai.azure.com/api/projects/demo", FoundryDecisionApi.SystemOne)]
+    [InlineData("http://example.openai.azure.com", FoundryDecisionApi.OpenAIDecisions)]
+    [InlineData("ftp://example.com/", FoundryDecisionApi.SystemOne)]
+    [InlineData("ftp://example.com/", FoundryDecisionApi.OpenAIDecisions)]
+    [InlineData("https://example.com/", (FoundryDecisionApi)42)]
+    public void EndpointFirstConstructorRejectsInvalidEndpointsAndApi(string endpoint, FoundryDecisionApi api)
+    {
+        Assert.Throws<ArgumentException>(() => new FoundryDecisionClient(
+            new Uri(endpoint, UriKind.RelativeOrAbsolute), "deployment", new Credential(), api));
     }
 }

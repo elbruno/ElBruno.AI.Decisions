@@ -1,5 +1,25 @@
 # Building, checking, and releasing the package
 
+### Foundry initialization release 0.8.0
+
+The maintainer authorized tentative **0.8.0** publication on November 3, 2026,
+after successful builds and tests. The new public constructors justify a minor
+version. All four package versions remain synchronized.
+
+This release adds endpoint-first Foundry initialization with explicit
+deployment and credential selection. Recognized Foundry project endpoints
+resolve to the resource-scoped SystemOne route; Azure OpenAI Decisions rejects
+them while preserving its existing resource-root and custom URL handling.
+The options and caller-managed transport APIs remain supported.
+
+Run the existing protected trusted-publishing workflow from the immutable
+release commit and verify all four exact-version packages from public NuGet
+against its validated artifacts. Offline endpoint tests and package-consumer
+checks do not add new live service verification. Live Jev compatibility remains
+unverified, and the tentative early-access notice remains required.
+
+### Previous 0.7.0 publication
+
 The latest published package family is **0.7.0**, verified from public NuGet
 by [publication run 40374040985](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/40374040985)
 on October 26, 2026. All four packages passed exact-version public-feed
@@ -71,7 +91,7 @@ the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3` and `0.7.0` versions.
+the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0` and `0.8.0` versions.
 The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
 READMEs. NuGet package contents are immutable; this requires a new version.
 The maintainer authorized tentative `0.6.3` on October 14, 2026 for
@@ -133,7 +153,8 @@ The check:
 - Restores, builds, and runs the consumer, checking the packaged assembly's hash,
   assembly/file/informational versions, and matching portable-PDB identity.
   Public API checks cover Choice, fractional Score, Noul, structured state,
-  nullable usage, model discovery, and cancellation through a fake
+  nullable usage, model discovery, cancellation, and Foundry endpoint-first
+  project/resource URI and credential handling through fake
   `HttpMessageHandler` at a reserved `.invalid` host. No actual HTTP handler
   is constructed for service requests.
 - Restores the original process environment and deletes only that specific
@@ -208,7 +229,7 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 **Publication is blocked by default while live compatibility is unverified.**
 Only a manual dispatch with `approve-unverified-publication=true` and either
-an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3` or `0.7.0`** or a
+an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0` or `0.8.0`** or a
 `major.minor.patch-preview[.identifier...]` version can reach the publishing
 job. That input acknowledges the absence of successful live validation;
 it is not an attestation that live tests passed. Other suffix-free versions

@@ -20,19 +20,45 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
     private readonly Azure.Core.TokenCredential? _credential;
 
     /// <summary>Creates a client with its own HTTP transport.</summary>
+    /// <remarks>The transport is disposed when this client is disposed.</remarks>
     public FoundryDecisionClient(FoundryDecisionOptions options)
-        : this(new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false }), options, ownsHttp: true) { }
+        : this(null, options, ownsHttp: true) { }
+
+    /// <summary>Creates a client from a Foundry endpoint, deployment name, and explicit token credential.</summary>
+    /// <param name="endpoint">An HTTPS resource root, Foundry project endpoint, or explicit invocation URL.</param>
+    /// <param name="deploymentName">The deployment name sent to the decision API.</param>
+    /// <param name="credential">The credential used to authorize requests.</param>
+    /// <param name="api">The decision API protocol. Defaults to Microsoft SystemOne.</param>
+    /// <remarks>The client owns its HTTP transport and disposes it when this client is disposed.</remarks>
+    public FoundryDecisionClient(
+        Uri endpoint,
+        string deploymentName,
+        Azure.Core.TokenCredential credential,
+        FoundryDecisionApi api = FoundryDecisionApi.SystemOne)
+        : this(CreateOptions(endpoint, deploymentName, credential, api)) { }
+
+    /// <summary>Creates a client from endpoint-first settings over a caller-managed HTTP client.</summary>
+    /// <remarks>The client borrows, but does not dispose, <paramref name="httpClient"/>.</remarks>
+    public FoundryDecisionClient(
+        HttpClient httpClient,
+        Uri endpoint,
+        string deploymentName,
+        Azure.Core.TokenCredential credential,
+        FoundryDecisionApi api = FoundryDecisionApi.SystemOne)
+        : this(httpClient, CreateOptions(endpoint, deploymentName, credential, api)) { }
 
     /// <summary>Creates a client over a caller-managed HTTP client.</summary>
+    /// <remarks>The client borrows, but does not dispose, <paramref name="httpClient"/>.</remarks>
     public FoundryDecisionClient(HttpClient httpClient, FoundryDecisionOptions options) : this(httpClient, options, ownsHttp: false) { }
 
-    private FoundryDecisionClient(HttpClient httpClient, FoundryDecisionOptions options, bool ownsHttp)
+    private FoundryDecisionClient(HttpClient? httpClient, FoundryDecisionOptions options, bool ownsHttp)
     {
-        ArgumentNullException.ThrowIfNull(httpClient);
+        if (!ownsHttp) ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(options);
         string[] errors = options.ValidationErrors();
         if (errors.Length > 0) throw new ArgumentException(string.Join(" ", errors), nameof(options));
-        _http = httpClient;
+        _ = ResolveEndpoint(options.Endpoint!, options.Api);
+        _http = httpClient ?? new HttpClient(new SocketsHttpHandler { AllowAutoRedirect = false });
         _ownsHttp = ownsHttp;
         _options = options;
         _credential = string.IsNullOrWhiteSpace(options.ApiKey)
@@ -130,14 +156,13 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             return (OpenAIDecisionsProtocol.ToSystemOneAnswer(result.Answers[0]), usage);
         }
 
-        Uri endpoint = ResolveEndpoint(_options.Endpoint!, _options.Api);
         JsonObject payload = new()
         {
             ["model"] = _options.Model,
             ["state"] = input,
             ["questions"] = new JsonObject { ["decision"] = question.DeepClone() }
         };
-        string body = await SendAsync(endpoint, payload, cancellationToken).ConfigureAwait(false);
+        string body = await SendAsync(ResolveEndpoint(_options.Endpoint!, _options.Api), payload, cancellationToken).ConfigureAwait(false);
         return SystemOneProtocol.Answer(body, question["type"]!.GetValue<string>());
     }
 
@@ -208,17 +233,47 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
         };
     }
 
+    private static FoundryDecisionOptions CreateOptions(
+        Uri endpoint,
+        string deploymentName,
+        Azure.Core.TokenCredential credential,
+        FoundryDecisionApi api)
+    {
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentException.ThrowIfNullOrWhiteSpace(deploymentName);
+        ArgumentNullException.ThrowIfNull(credential);
+        return new FoundryDecisionOptions
+        {
+            Endpoint = endpoint,
+            Model = deploymentName,
+            Credential = credential,
+            Api = api
+        };
+    }
+
     private static Uri ResolveEndpoint(Uri endpoint, FoundryDecisionApi api)
     {
         string path = endpoint.AbsolutePath;
         if (api == FoundryDecisionApi.SystemOne)
         {
-            return path == "/" ? new Uri(endpoint, "providers/microsoft/v1/systemone") : endpoint;
+            if (path == "/" || IsProjectEndpoint(endpoint))
+            {
+                return new UriBuilder(endpoint) { Path = "/providers/microsoft/v1/systemone" }.Uri;
+            }
+
+            return endpoint;
         }
 
         if (api != FoundryDecisionApi.OpenAIDecisions)
         {
             throw new ArgumentOutOfRangeException(nameof(api), api, "Unsupported Foundry decision API.");
+        }
+
+        if (IsProjectEndpoint(endpoint))
+        {
+            throw new ArgumentException(
+                "Foundry project endpoints are supported only with the SystemOne API. Use the Azure OpenAI resource root or an explicit invocation URL for OpenAIDecisions.",
+                nameof(endpoint));
         }
 
         if (path == "/")
@@ -237,6 +292,25 @@ public sealed class FoundryDecisionClient : IDecisionClient, IDisposable
             return builder.Uri;
         }
         return endpoint;
+    }
+
+    private static bool IsProjectEndpoint(Uri endpoint)
+    {
+        if (!endpoint.IdnHost.EndsWith(".services.ai.azure.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string path = endpoint.AbsolutePath;
+        if (path.EndsWith("/", StringComparison.Ordinal))
+        {
+            path = path[..^1];
+        }
+
+        const string prefix = "/api/projects/";
+        return path.StartsWith(prefix, StringComparison.Ordinal) &&
+            path.Length > prefix.Length &&
+            !path.AsSpan(prefix.Length).Contains('/');
     }
 
     private static async Task<string> ReadBoundedAsync(HttpResponseMessage response, CancellationToken cancellationToken)

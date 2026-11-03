@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.8.0 - 2026-11-03 (tentative)
+
+- Add endpoint-first Foundry constructors with an explicit deployment name and
+  `TokenCredential`, including Azure CLI and managed identity credentials.
+  Preserve options-based construction and caller-managed HTTP transports.
+- Resolve recognized Foundry project endpoints to the resource-level SystemOne
+  route, with or without a trailing slash. Reject those project endpoints for
+  Azure OpenAI Decisions without changing its existing routing behavior.
+- Preserve explicit invocation URLs, arbitrary custom paths, and query strings.
+  Use the same resolution for DI registration and direct construction.
+- Lead quickstarts with endpoint-first initialization and document deployment
+  identifiers, authentication, and HTTP transport ownership. Add offline
+  request-URI, validation, authentication, DI, and disposal regression tests.
+- Keep all four package versions synchronized. This release adds no new live
+  service verification; live Jev compatibility remains unverified.
+
 ## 0.7.0 - 2026-10-26 (tentative)
 
 - Add the Azure OpenAI Decisions API for gpt-6-luna, with typed text/image input,

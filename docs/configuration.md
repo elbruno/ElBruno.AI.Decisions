@@ -113,12 +113,16 @@ The SDK has no native body logging. Applications should also configure HTTP/OTel
 
 The provider uses the route documented in the
 [Microsoft launch article](https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742):
-`/providers/microsoft/v1/systemone`. HTTPS resource roots append this path;
-full invocation URLs are used unchanged. Requests contain `model`, `state`,
-and a named `questions` object. Choice uses a `criteria` map, Score an ordered
-`criteria` list, and Assess a `noul` question. Responses contain a named `answers`
-object. Choice and Score probabilities are maps, and Assess reads `noul`.
-Provider choice and confidence are preserved. Invalid results fail explicitly.
+`/providers/microsoft/v1/systemone`. HTTPS resource roots and recognized
+Foundry project endpoints of the form
+`https://<resource>.services.ai.azure.com/api/projects/<project>` resolve to
+this resource-level route, with or without a trailing slash. Full invocation
+URLs and arbitrary custom paths are used unchanged. Requests contain `model`,
+`state`, and a named `questions` object. Choice uses a `criteria` map, Score an
+ordered `criteria` list, and Assess a `noul` question. Responses contain a
+named `answers` object. Choice and Score probabilities are maps, and Assess
+reads `noul`. Provider choice and confidence are preserved. Invalid results
+fail explicitly.
 
 Choice, Score and Assess were verified against a real Microsoft-Decision-1
 deployment with API-key authentication on October 9, 2026. This smoke test does
@@ -129,8 +133,12 @@ All three operations also passed Azure CLI/Entra checks on October 26, 2026.
 Use the shared user-secrets ID `ElBruno.AI.Decisions.Jev.Development` for
 `Decisions:Foundry:Endpoint` and `Decisions:Foundry:Model`.
 `Decisions:Foundry:ApiKey` is optional: when supplied it takes precedence;
-when absent or empty the Foundry client uses `AzureCliCredential` after `az login`,
-requesting the `https://cognitiveservices.azure.com/.default` scope.
+when absent or empty the options-based Foundry client uses
+`AzureCliCredential` after `az login`, requesting the
+`https://cognitiveservices.azure.com/.default` scope. The endpoint-first
+constructor instead requires an explicit `Azure.Core.TokenCredential`, such
+as `AzureCliCredential` locally or `ManagedIdentityCredential` in a hosted
+application, and uses that credential as supplied.
 Your signed-in identity must have permission to invoke the deployed model.
 The existing `Set-FoundryUserSecrets.ps1` interactive helper requires a key;
 use `dotnet user-secrets set --id ElBruno.AI.Decisions.Jev.Development` directly
@@ -143,9 +151,11 @@ To call `gpt-6-luna`, set `FoundryDecisionOptions.Api` to
 `/openai/v1/decisions`, using `input` and a typed `questions` array, and maps
 `predicate`, `choice`, and `score` answers onto the shared `IDecisionClient`
 results. Supply the HTTPS Azure OpenAI resource root or the full invocation URL,
-and use the deployment name for `Model`. Authentication uses the same `ApiKey`
-or Azure credential configuration as SystemOne. The default `SystemOne` mode
-and its Microsoft-Decision-1 request/response contract remain unchanged.
+and use the deployment name for `Model`. Foundry project endpoints are not
+supported for this API; the endpoint-first constructor accepts an API argument
+to select this protocol explicitly. Authentication uses the same `ApiKey` or
+Azure credential configuration as SystemOne. The default `SystemOne` mode and
+its Microsoft-Decision-1 request/response contract remain unchanged.
 “MAI-Decisions-1” here refers to Microsoft-Decision-1 through SystemOne, not a
 third endpoint.
 
@@ -175,8 +185,10 @@ the other deployment:
 | Sample switch | Default (or `Decisions:Foundry:Api=SystemOne`) | `--openai` |
 | Optional image | Not supported by this sample's SystemOne flow | `Decisions:OpenAI:ImageUrl` |
 
-Do not use the project endpoint ending `/api/projects/<project>` as an inference
-endpoint. These APIs use the resource-level roots shown in the walkthrough.
+The SystemOne mode accepts either the project endpoint or resource root.
+Azure OpenAI Decisions requires its Azure OpenAI resource root or a full
+invocation URL. These APIs do not discover deployments; use the configured
+deployment name shown in the walkthrough.
 The separate `Decisions:OpenAI` section is a sample/test hosting convention, not
 an automatic library configuration lookup. `AddFoundryDecisions` callers must
 map their own settings to `FoundryDecisionOptions`.

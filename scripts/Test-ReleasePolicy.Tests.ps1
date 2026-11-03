@@ -51,6 +51,10 @@ Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.0'; Ref 
 Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.0'; Ref = 'v0.7.0' } -ExpectedVersion '0.7.0'
 Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.7.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
 Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.1'; Ref = 'v0.7.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.0'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.8.0' -ExpectedPublish $true
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.0'; Ref = 'v0.8.0' } -ExpectedVersion '0.8.0'
+Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.8.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.1'; Ref = 'v0.8.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative'
 foreach ($version in @('01.6.0', '0.6.0+build', '0.6.0;echo unsafe')) {
     Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = ('a' * 40) } -ExpectedError 'Expected SemVer'
 }

@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using ElBruno.AI.Decisions;
+using ElBruno.AI.Decisions.Foundry;
 using ElBruno.AI.Decisions.Jev;
 
 if (args.Length != 6)
@@ -118,11 +119,65 @@ Check(new ChoiceDecision("a", new Dictionary<string, double> { ["a"] = 1 }, null
     new ScoreDecision([.7, .3], reportedUsage).Usage == reportedUsage &&
     new AssessmentDecision(.8, reportedUsage).Usage?.TotalTokens is null,
     "Shared decision results must preserve reported usage without deriving totals.");
-Console.WriteLine($"PASS: packed {args[5]} {version}; versions, assembly hash and symbols; Jev typed decisions, model discovery, and cancellation. No service network calls.");
+foreach (FoundryDecisionApi api in Enum.GetValues<FoundryDecisionApi>())
+{
+    using var foundryHandler = new FakeFoundryHandler(api);
+    using var foundryHttp = new HttpClient(foundryHandler);
+    var credential = new FakeFoundryCredential();
+    Uri endpoint = api == FoundryDecisionApi.SystemOne
+        ? new Uri("https://package-tests.services.ai.azure.com/api/projects/demo/")
+        : new Uri("https://package-tests.openai.azure.com/");
+    using var foundry = new FoundryDecisionClient(foundryHttp, endpoint, "package-test-deployment", credential, api);
+    AssessmentDecision assessment = await foundry.AssessAsync("Synthetic package test", "Is it synthetic?");
+    Check(assessment.Probability == .8 && credential.CallCount == 1, "Foundry credential or response mismatch.");
+}
+Console.WriteLine($"PASS: packed {args[5]} {version}; versions, assembly hash and symbols; Jev typed decisions, model discovery, cancellation, and Foundry endpoint-first URI/authentication. No service network calls.");
 
 static void Check(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
+}
+
+internal sealed class FakeFoundryCredential : Azure.Core.TokenCredential
+{
+    public int CallCount { get; private set; }
+
+    public override Azure.Core.AccessToken GetToken(Azure.Core.TokenRequestContext requestContext, CancellationToken cancellationToken) =>
+        throw new NotSupportedException();
+
+    public override ValueTask<Azure.Core.AccessToken> GetTokenAsync(
+        Azure.Core.TokenRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!requestContext.Scopes.SequenceEqual(["https://cognitiveservices.azure.com/.default"]))
+            throw new InvalidOperationException("Unexpected Foundry credential scope.");
+        CallCount++;
+        return ValueTask.FromResult(new Azure.Core.AccessToken("package-test-token", DateTimeOffset.UtcNow.AddMinutes(5)));
+    }
+}
+
+internal sealed class FakeFoundryHandler(FoundryDecisionApi api) : HttpMessageHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        string expected = api == FoundryDecisionApi.SystemOne
+            ? "https://package-tests.services.ai.azure.com/providers/microsoft/v1/systemone"
+            : "https://package-tests.openai.azure.com/openai/v1/decisions";
+        if (request.RequestUri?.AbsoluteUri != expected || request.Method != HttpMethod.Post ||
+            request.Headers.Authorization?.Scheme != "Bearer" ||
+            request.Headers.Authorization.Parameter != "package-test-token")
+            throw new InvalidOperationException("Unexpected packaged Foundry endpoint or credential.");
+        using JsonDocument body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
+        if (body.RootElement.GetProperty("model").GetString() != "package-test-deployment")
+            throw new InvalidOperationException("Foundry deployment name was not preserved.");
+        string reply = api == FoundryDecisionApi.SystemOne
+            ? """{"answers":{"decision":{"type":"noul","noul":0.8}}}"""
+            : """{"answers":[{"type":"predicate","name":"decision","probability":0.8}]}""";
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(reply, Encoding.UTF8, "application/json")
+        };
+    }
 }
 
 internal sealed class FakeJevHandler : HttpMessageHandler

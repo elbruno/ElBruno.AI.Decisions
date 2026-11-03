@@ -24,12 +24,13 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.7.0` adds gpt-6-luna batch/image decisions while
-preserving the provider-reported token usage introduced in `0.6.3`:
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.7.0),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.7.0),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.7.0), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.7.0).
+**Early access:** version `0.8.0` adds Foundry project endpoints and
+endpoint-first constructors while preserving batch/image decisions and
+provider-reported token usage:
+[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.8.0),
+[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.8.0),
+[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.8.0), and
+[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.8.0).
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
 **Ollama correction:** native System One support requires `0.6.1` or later.
@@ -40,17 +41,18 @@ See [validation scope and results](docs/testing.md#live-ollama-smoke-test).
 
 ## 1. Foundry: Microsoft-Decision-1
 
-Reference package: `ElBruno.AI.Decisions.Foundry`.
-This example classifies a request:
+Reference package: `ElBruno.AI.Decisions.Foundry`. After `az login`, initialize
+the client directly from a Foundry project endpoint, deployment name, and
+explicit credential:
 
 ```csharp
+using Azure.Identity;
 using ElBruno.AI.Decisions.Foundry;
 
-using var client = new FoundryDecisionClient(new FoundryDecisionOptions
-{
-    Endpoint = new Uri("https://<resource>.services.ai.azure.com"),
-    Model = "<deployment-name>"
-});
+using var client = new FoundryDecisionClient(
+    new Uri("https://<resource>.services.ai.azure.com/api/projects/<project>"),
+    "<deployment-name>",
+    new AzureCliCredential());
 
 var teams = new Dictionary<string, string?>
 {
@@ -91,13 +93,35 @@ Availability depends on the provider/model; cross-model token counts do not
 imply equivalent computation or cost. See [usage semantics](docs/decisions.md#provider-reported-token-usage).
 
 **URL template:** `https://<resource>.services.ai.azure.com/providers/microsoft/v1/systemone`.
-Resource roots automatically append that path; full invocation URLs are used
-unchanged. **Model:** use your deployment name (for example, `msft-decision-1`),
-not necessarily the catalog model name `Microsoft-Decision-1`.
+Both the resource root (`https://<resource>.services.ai.azure.com/`) and project
+endpoint (`https://<resource>.services.ai.azure.com/api/projects/<project>`)
+resolve to this resource-scoped route, with or without a trailing slash. Full
+invocation URLs and custom paths are used unchanged. **Deployment name:** use
+the name of your deployed model, for example `msft-decision-1`, not necessarily
+the catalog model name `Microsoft-Decision-1`. The endpoint-first constructor
+accepts any `Azure.Core.TokenCredential`, including `AzureCliCredential` for
+local development and `ManagedIdentityCredential` in a hosted app. It uses the
+credential you pass; it does not select or replace one.
 
-The example uses `AzureCliCredential` after `az login`. Set `ApiKey` in the options
-from configuration to use key authentication instead; a supplied key takes
-precedence. Never hardcode credentials.
+### Advanced configuration and custom transports
+
+Use `FoundryDecisionOptions` when configuring API keys, timeouts, or the Azure
+OpenAI Decisions API. `AddFoundryDecisions` uses the same endpoint resolution:
+
+```csharp
+builder.Services.AddFoundryDecisions(options =>
+{
+    options.Endpoint = new Uri("https://<resource>.services.ai.azure.com/api/projects/<project>");
+    options.Model = "<deployment-name>";
+    options.Credential = new AzureCliCredential();
+});
+```
+
+For custom HTTP handlers or transport settings, use the caller-managed
+`HttpClient` overload. The client borrows the `HttpClient` and does not dispose
+it; the caller must keep it alive while requests run and dispose it afterward.
+The client sets `HttpClient.Timeout` to infinite and enforces
+`FoundryDecisionOptions.Timeout` per request.
 
 Choice, Score and Assess passed a live API-key smoke test on October 9, 2026,
 and Azure CLI/Entra checks on October 26, 2026.
