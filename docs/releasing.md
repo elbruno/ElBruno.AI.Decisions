@@ -12,15 +12,24 @@ resolve to the resource-scoped SystemOne route; Azure OpenAI Decisions rejects
 them while preserving its existing resource-root and custom URL handling.
 The options and caller-managed transport APIs remain supported.
 
-Run the existing protected trusted-publishing workflow from the immutable
-release commit and verify all four exact-version packages from public NuGet
-against its validated artifacts. Offline endpoint tests and package-consumer
-checks do not add new live service verification. Live Jev compatibility remains
+All four **0.8.0** packages and adjacent symbols were published by the existing
+protected [trusted-publishing workflow](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/41660481306)
+on November 3, 2026, from immutable commit
+`dc46fc812629723ea2f20ab785bd73ae29a67780`. Both Linux and Windows release
+validation passed. Exact-version restores from public NuGet, offline consumer
+execution, and matching validated assembly hashes passed for every package.
+The [0.8.0 release](https://github.com/elbruno/ElBruno.AI.Decisions/releases/tag/v0.8.0)
+contains the original validated packages and symbols.
+
+Local validation passed 615 tests, all offline samples, formatting, and the
+coverage gates (99.68% lines and 98.69% branches for Jev). Five live tests
+remained opt-in and skipped. Offline endpoint tests and package-consumer checks
+do not add new live service verification. Live Jev compatibility remains
 unverified, and the tentative early-access notice remains required.
 
 ### Previous 0.7.0 publication
 
-The latest published package family is **0.7.0**, verified from public NuGet
+The **0.7.0** package family was verified from public NuGet
 by [publication run 40374040985](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/40374040985)
 on October 26, 2026. All four packages passed exact-version public-feed
 restore/consumer checks against the validated release artifacts after indexing.
