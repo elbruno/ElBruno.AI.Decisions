@@ -11,6 +11,7 @@
     <PackageReference Include="ElBruno.AI.Decisions.Jev" Version="[$(JevPackageVersion)]" />
     <PackageReference Include="ElBruno.AI.Decisions" Version="[$(JevPackageVersion)]" />
     <PackageReference Include="ElBruno.AI.Decisions.Foundry" Version="[$(JevPackageVersion)]" />
+    <PackageReference Include="ElBruno.AI.Decisions.Foundry.Local" Version="[$(JevPackageVersion)]" />
     <PackageReference Include="ElBruno.AI.Decisions.Ollama" Version="[$(JevPackageVersion)]" />
   </ItemGroup>
   <Target Name="RequirePackageVersion" BeforeTargets="CollectPackageReferences">

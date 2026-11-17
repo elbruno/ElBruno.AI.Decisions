@@ -13,7 +13,7 @@
 One .NET API for **classification, routing, rubric scoring, and proposition
 assessment**, with probability distributions instead of generated text.
 Start with Microsoft-Decision-1 on **Foundry**, run models locally with
-**Ollama**, or use the native **Jev** SDK.
+**Foundry Local** or **Ollama**, or use the native **Jev** SDK.
 
 Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisions.md).
 
@@ -21,6 +21,7 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | --- | --- | --- | --- |
 | `ElBruno.AI.Decisions` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
 | `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1/SystemOne and gpt-6-luna/Azure OpenAI Decisions |
+| `ElBruno.AI.Decisions.Foundry.Local` | In development | — | Cached typed-decision models through the Foundry Local SDK |
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
@@ -167,6 +168,20 @@ both deployments independently, runs batch/image examples, and enables the live
 tests. The gpt-6-luna batch, token usage, and a synthetic image request passed
 live Azure CLI/Entra checks on October 26, 2026. This does not establish model
 accuracy or calibration.
+
+## Foundry Local: local typed decisions
+
+The separate `ElBruno.AI.Decisions.Foundry.Local` package adapts cached Foundry
+Local models that advertise `noul`, `choice`, and `score` capabilities to the
+shared `IDecisionClient`. When needed, it registers the existing cache directory
+as a `typed-decision` model under a distinct local alias, without copying or
+downloading model assets or shadowing the public CLI alias. Initialize
+`FoundryLocalManager` with `AppName = "foundry"` to use the CLI's default cache,
+then resolve a model with `FoundryLocalDecisionModelResolver`. `kev-0.8b` was
+verified with real CPU inference; `kev-4b` is capability-supported but not
+inference-verified. CLM exposes candidate-ranking capabilities and is not
+treated as a decision model. See the [package guide](docs/nuget-foundry-local-readme.md)
+and [local inference test](docs/testing.md#foundry-local-decision-smoke-test).
 
 ## 2. Ollama: local decisions
 

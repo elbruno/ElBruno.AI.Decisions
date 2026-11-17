@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>ElBruno.AI.Decisions.Foundry.Local</PackageId>
+    <Description>Provider-neutral typed decisions using cached decision models through the Microsoft Foundry Local SDK.</Description>
+    <PackageTags>ai;decision;foundry;local;kev;classification;dotnet</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>nuget-icon.png</PackageIcon>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="ElBruno.AI.Decisions.Foundry.Local.Tests" />
+    <PackageReference Include="Microsoft.AI.Foundry.Local" />
+    <ProjectReference Include="..\ElBruno.AI.Decisions\ElBruno.AI.Decisions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\docs\nuget-foundry-local-readme.md" Pack="true" PackagePath="\README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\images\nuget-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>
