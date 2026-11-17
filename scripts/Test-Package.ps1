@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('All', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')]
+    [ValidateSet('All', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama')]
     [string]$PackageId = 'All',
     [string]$PackageDirectory,
     [string]$Version,
@@ -17,7 +17,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($PackageId -eq 'All') {
     $parameters = @{} + $PSBoundParameters
-    foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Ollama')) {
+    foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama')) {
         $parameters['PackageId'] = $id
         & $PSCommandPath @parameters
     }
@@ -51,6 +51,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'README.md') -PathTy
 $readmeFile = switch ($PackageId) {
     'ElBruno.AI.Decisions' { 'nuget-core-readme.md' }
     'ElBruno.AI.Decisions.Foundry' { 'nuget-foundry-readme.md' }
+    'ElBruno.AI.Decisions.Foundry.Local' { 'nuget-foundry-local-readme.md' }
     'ElBruno.AI.Decisions.Ollama' { 'nuget-ollama-readme.md' }
     default { 'nuget-readme.md' }
 }
@@ -155,6 +156,7 @@ try {
     $requiredDependencies = switch ($PackageId) {
         'ElBruno.AI.Decisions' { @('Microsoft.Extensions.AI.Abstractions') }
         'ElBruno.AI.Decisions.Jev' { @('ElBruno.AI.Decisions', 'Microsoft.Extensions.AI', 'Microsoft.Extensions.Http') }
+        'ElBruno.AI.Decisions.Foundry.Local' { @('ElBruno.AI.Decisions', 'Microsoft.AI.Foundry.Local') }
         default { @('ElBruno.AI.Decisions', 'Microsoft.Extensions.Http') }
     }
     foreach ($dependency in $requiredDependencies) {

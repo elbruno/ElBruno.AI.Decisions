@@ -79,6 +79,31 @@ dotnet run --project samples\12-FoundryDecision -- --offline
 dotnet run --project samples\12-FoundryDecision -- --offline --openai
 ```
 
+### Foundry Local decision smoke test
+
+The opt-in test `CachedKev08bRunsChoiceScoreAndNoulInference` initializes the
+Foundry Local SDK against the CLI cache (`AppName = "foundry"`), registers the
+cached `kev-0.8b` assets under a distinct `typed-decision` alias, and runs all
+three shared decision operations on CPU. It checks that concurrent resolutions
+return the same registration and that the public alias is not added to the local
+catalog. It is skipped unless `DECISIONS_RUN_FOUNDRY_LOCAL=1`; it does not download
+model files. Set `DECISIONS_FOUNDRY_LOCAL_CACHE` to an isolated model cache
+containing the existing assets if you do not want to leave the namespaced test
+registration in the CLI's shared catalog.
+
+```powershell
+foundry model download kev-0.8b
+$env:DECISIONS_RUN_FOUNDRY_LOCAL = "1"
+dotnet test tests\ElBruno.AI.Decisions.Foundry.Local.Tests -c Release
+Remove-Item Env:DECISIONS_RUN_FOUNDRY_LOCAL
+```
+
+The Foundry Local runtime 2.4.1 on Windows passed CPU inference for `kev-0.8b`
+on November 17, 2026. `kev-4b` and non-Windows/hardware variants have not been
+inference-verified. `clm-v0.1-8b` is a ranking model and intentionally fails the
+resolver's decision-capability check. This smoke check does not establish
+accuracy or calibration.
+
 ### Published 0.7.0 verification
 
 On October 26, 2026, [publication run 40374040985](https://github.com/elbruno/ElBruno.AI.Decisions/actions/runs/40374040985)

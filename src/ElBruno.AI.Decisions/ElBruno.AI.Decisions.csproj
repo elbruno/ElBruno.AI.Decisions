@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Foundry" />
+    <InternalsVisibleTo Include="ElBruno.AI.Decisions.Foundry.Local" />
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Ollama" />
     <InternalsVisibleTo Include="ElBruno.AI.Decisions.Jev" />
   </ItemGroup>
