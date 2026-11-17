@@ -1,11 +1,11 @@
 using System.Text.Json;
+using Microsoft.AI.Foundry.Local;
+using Microsoft.Extensions.Logging.Abstractions;
 using LocalDecisionAnswer = Microsoft.AI.Foundry.Local.DecisionAnswer;
 using LocalDecisionQuestionKind = Microsoft.AI.Foundry.Local.DecisionQuestionKind;
 using LocalDecisionRequest = Microsoft.AI.Foundry.Local.DecisionRequest;
 using LocalDecisionResult = Microsoft.AI.Foundry.Local.DecisionResult;
 using LocalDecisionUsage = Microsoft.AI.Foundry.Local.DecisionUsage;
-using Microsoft.AI.Foundry.Local;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ElBruno.AI.Decisions.Foundry.Local.Tests;
 
