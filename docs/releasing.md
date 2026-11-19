@@ -1,5 +1,13 @@
 # Building, checking, and releasing the package
 
+### Decisions release 0.9.0
+
+The maintainer requested publication of 0.9.0 and stated that Jev works.
+This is not independent live-test evidence; live Jev compatibility remains
+unverified by this repository's opt-in suite. Version 0.9.0 adds the Foundry
+Local provider and dependency upgrades while retaining tentative early-access
+disclosures. Publication requires the existing protected manual workflow.
+
 ### Foundry initialization release 0.8.0
 
 The maintainer authorized tentative **0.8.0** publication on November 3, 2026,
@@ -100,7 +108,7 @@ the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
 Manual preview publication is also supported; both paths must acknowledge that
 live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0` and `0.8.0` versions.
+the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0`, `0.8.0` and `0.9.0` versions.
 The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
 READMEs. NuGet package contents are immutable; this requires a new version.
 The maintainer authorized tentative `0.6.3` on October 14, 2026 for
@@ -238,7 +246,7 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 
 **Publication is blocked by default while live compatibility is unverified.**
 Only a manual dispatch with `approve-unverified-publication=true` and either
-an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0` or `0.8.0`** or a
+an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0`, `0.8.0` or `0.9.0`** or a
 `major.minor.patch-preview[.identifier...]` version can reach the publishing
 job. That input acknowledges the absence of successful live validation;
 it is not an attestation that live tests passed. Other suffix-free versions

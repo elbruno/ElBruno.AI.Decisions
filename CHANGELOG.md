@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0 - 2026-11-19 (tentative)
+
+- Upgrade Azure.Identity to 1.21.0 and Microsoft.Extensions.AI and its
+  abstractions to 11.0.0, preserving the .NET 10 target.
+- Add the optional Foundry Local provider for cached typed-decision models.
+  Windows CPU inference was exercised with kev-0.8b; other models, platforms,
+  and calibration are not verified. Local registrations use a distinct alias.
+- The maintainer states Jev works and requested release; this does not add
+  independent live Jev verification. Evaluate before production use.
+
 ## 0.8.0 - 2026-11-03 (tentative)
 
 - Add endpoint-first Foundry constructors with an explicit deployment name and

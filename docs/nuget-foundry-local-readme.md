@@ -3,7 +3,7 @@
 Run the shared `IDecisionClient` API with a cached typed-decision model through the Microsoft Foundry Local SDK.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Foundry.Local --version 0.8.0
+dotnet add package ElBruno.AI.Decisions.Foundry.Local --version 0.9.0
 ```
 
 Install Foundry Local and cache a supported model, for example:
