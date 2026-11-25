@@ -22,6 +22,9 @@ Assembly assembly = args[5] switch
     "ElBruno.AI.Decisions.Foundry" => typeof(ElBruno.AI.Decisions.Foundry.FoundryDecisionClient).Assembly,
     "ElBruno.AI.Decisions.Foundry.Local" => typeof(FoundryLocalDecisionClient).Assembly,
     "ElBruno.AI.Decisions.Ollama" => typeof(ElBruno.AI.Decisions.Ollama.OllamaDecisionClient).Assembly,
+#if INCLUDE_LLAMA
+    "ElBruno.AI.Decisions.Llama" => typeof(ElBruno.AI.Decisions.Llama.LlamaDecisionClient).Assembly,
+#endif
     "ElBruno.AI.Decisions.Jev" => typeof(JevClient).Assembly,
     _ => throw new ArgumentException("Unknown package.")
 };

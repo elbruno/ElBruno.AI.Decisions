@@ -23,6 +23,7 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1/SystemOne and gpt-6-luna/Azure OpenAI Decisions |
 | `ElBruno.AI.Decisions.Foundry.Local` | In development | — | Cached typed-decision models through the Foundry Local SDK |
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
+| `ElBruno.AI.Decisions.Llama` | Not yet released | Not yet released | Llama App text, image and audio decision models |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
 **Early access:** version `0.8.0` adds Foundry project endpoints and
@@ -182,6 +183,17 @@ verified with real CPU inference; `kev-4b` is capability-supported but not
 inference-verified. CLM exposes candidate-ranking capabilities and is not
 treated as a decision model. See the [package guide](docs/nuget-foundry-local-readme.md)
 and [local inference test](docs/testing.md#foundry-local-decision-smoke-test).
+
+## Llama App: local multimodal decisions
+
+The separate `ElBruno.AI.Decisions.Llama` provider supports shared text
+decisions and native named batches with image and audio input. Start Llama App
+with a locally installed decision model; no model is downloaded by the SDK.
+Run `dotnet run --project samples/13-LlamaDecision` and optionally pass
+`--model <id>`, `--endpoint <url>`, `--image <path>` or `--audio <path>`.
+`--offline` uses synthetic responses. The package is not yet published.
+See the [package guide](docs/nuget-llama-readme.md) for privacy, limits and
+score semantics. Model confidence does not establish accuracy.
 
 ## 2. Ollama: local decisions
 

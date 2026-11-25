@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('All', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama')]
+    [ValidateSet('All', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama', 'ElBruno.AI.Decisions.Llama')]
     [string]$PackageId = 'All',
     [string]$PackageDirectory,
     [string]$Version,
@@ -17,7 +17,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($PackageId -eq 'All') {
     $parameters = @{} + $PSBoundParameters
-    foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama')) {
+    foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama', 'ElBruno.AI.Decisions.Llama')) {
         $parameters['PackageId'] = $id
         & $PSCommandPath @parameters
     }
@@ -53,6 +53,7 @@ $readmeFile = switch ($PackageId) {
     'ElBruno.AI.Decisions.Foundry' { 'nuget-foundry-readme.md' }
     'ElBruno.AI.Decisions.Foundry.Local' { 'nuget-foundry-local-readme.md' }
     'ElBruno.AI.Decisions.Ollama' { 'nuget-ollama-readme.md' }
+    'ElBruno.AI.Decisions.Llama' { 'nuget-llama-readme.md' }
     default { 'nuget-readme.md' }
 }
 $nugetReadmePath = Join-Path (Join-Path $repositoryRoot 'docs') $readmeFile
@@ -258,6 +259,7 @@ try {
 "@
     $configPath = Join-Path $runDirectory 'NuGet.Config'
     [System.IO.File]::WriteAllText($configPath, $configuration)
+    $llamaProperty = "-p:IncludeLlama=$($PackageId -ceq 'ElBruno.AI.Decisions.Llama')"
     $attemptLimit = if ($UsePublicFeed) { $IndexAttempts } else { 1 }
     $restored = $false
     for ($attempt = 1; $attempt -le $attemptLimit; $attempt++) {
@@ -265,7 +267,7 @@ try {
         $env:NUGET_HTTP_CACHE_PATH = Join-Path $runDirectory "http-$attempt"
         $env:NUGET_PLUGINS_CACHE_PATH = Join-Path $runDirectory "plugins-$attempt"
         & dotnet restore $project --configfile $configPath --packages $env:NUGET_PACKAGES --no-http-cache --force `
-            "-p:JevPackageVersion=$Version" '-p:NuGetAudit=false' '-p:RestoreIgnoreFailedSources=false' `
+            "-p:JevPackageVersion=$Version" $llamaProperty '-p:NuGetAudit=false' '-p:RestoreIgnoreFailedSources=false' `
             '-p:RestoreFallbackFolders=' '-p:RestoreAdditionalProjectFallbackFolders='
         if ($LASTEXITCODE -eq 0) {
             $restored = $true
@@ -278,12 +280,12 @@ try {
     }
     if (-not $restored) { throw "Exact package restore failed after $attemptLimit attempt(s); publication/indexing is NOT verified." }
 
-    Invoke-Dotnet -Arguments @('build', $project, '--configuration', 'Release', '--no-restore', "-p:JevPackageVersion=$Version")
+    Invoke-Dotnet -Arguments @('build', $project, '--configuration', 'Release', '--no-restore', "-p:JevPackageVersion=$Version", $llamaProperty)
     $assemblyHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($assemblyBytes))
     $expectedRepository = if ($RequireSourceLink) { $ExpectedRepositoryUrl } else { '-' }
     $expectedCommit = if ($RequireSourceLink) { $repository.GetAttribute('commit') } else { '-' }
     Invoke-Dotnet -Arguments @('run', '--project', $project, '--configuration', 'Release', '--no-build', '--no-restore',
-        "-p:JevPackageVersion=$Version", '--', $Version, $assemblyHash, $pdbPath, $expectedRepository, $expectedCommit, $PackageId)
+        "-p:JevPackageVersion=$Version", $llamaProperty, '--', $Version, $assemblyHash, $pdbPath, $expectedRepository, $expectedCommit, $PackageId)
     Write-Host "PASS: package ZIP, metadata, symbols, and isolated $(if ($UsePublicFeed) { 'public NuGet' } else { 'local packed' }) consumer."
 }
 finally {

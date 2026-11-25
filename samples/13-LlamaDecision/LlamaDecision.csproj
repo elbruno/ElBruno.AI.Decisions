@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ElBruno.AI.Decisions.Llama\ElBruno.AI.Decisions.Llama.csproj" />
+    <None Include="media\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
