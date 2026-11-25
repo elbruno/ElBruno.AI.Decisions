@@ -67,9 +67,26 @@ static void Print(string label, LlamaDecisionResponse response)
     Console.WriteLine($"{label}: model={response.Model ?? "(not reported)"}");
     foreach ((string name, LlamaAnswer answer) in response.Answers)
     {
-        Console.WriteLine($"  {name}: {answer}");
+        switch (answer)
+        {
+            case LlamaChoiceAnswer choice:
+                Console.WriteLine($"  {name}: choice={choice.Choice}, confidence={Confidence(choice.Confidence)}");
+                foreach ((string option, double probability) in choice.Probabilities)
+                    Console.WriteLine($"    {option}: {probability:P1}");
+                break;
+            case LlamaScoreAnswer score:
+                Console.WriteLine($"  {name}: score={score.Score:F2}, confidence={Confidence(score.Confidence)}");
+                for (int level = 0; level < score.Probabilities.Count; level++)
+                    Console.WriteLine($"    level {level}: {score.Probabilities[level]:P1}");
+                break;
+            case LlamaNoulAnswer noul:
+                Console.WriteLine($"  {name}: probability of yes={noul.Probability:P1}");
+                break;
+        }
     }
 }
+
+static string Confidence(double? confidence) => confidence is double value ? $"{value:P1}" : "not reported";
 
 static string MediaType(string path) => Path.GetExtension(path).ToLowerInvariant() switch
 {
@@ -89,7 +106,7 @@ sealed class OfflineHandler : HttpMessageHandler
     {
         string body = await request.Content!.ReadAsStringAsync(cancellationToken);
         string answers = body.Contains("\"color\"", StringComparison.Ordinal)
-            ? """{"color":{"type":"choice","choice":"red","probabilities":{"red":0.8,"blue":0.1,"unclear":0.1},"confidence":0.8}}"""
+            ? """{"color":{"type":"choice","choice":"red","probabilities":{"red":0.8,"blue":0.1,"unclear":0.1}}}"""
             : body.Contains("\"priority\"", StringComparison.Ordinal)
                 ? """{"team":{"type":"choice","choice":"plumbing","probabilities":{"plumbing":0.8,"electrical":0.1,"other":0.1},"confidence":0.8},"priority":{"type":"score","score":1,"probabilities":{"0":0.1,"1":0.8,"2":0.1},"confidence":0.8},"contact":{"type":"noul","noul":0.9}}"""
                 : """{"team":{"type":"choice","choice":"plumbing","probabilities":{"plumbing":0.8,"electrical":0.1,"other":0.1},"confidence":0.8}}""";

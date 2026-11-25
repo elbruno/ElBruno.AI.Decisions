@@ -19,3 +19,12 @@ the text example and red for the image example. It returned `other` for the
 synthetic speech despite the recording mentioning a leaking tap. One example
 does not establish model accuracy; evaluate audio and confidence thresholds on
 representative data and keep a human review path.
+
+In a follow-up check, the exact WAV bytes were verified in the `files` data URL
+sent to the selected model. The server accepted both the original and separate
+16 kHz synthetic plumbing and electrical recordings, but routed both speech
+controls to `other`. A speech-detection question distinguished the controls
+from a 440 Hz tone, while a question about leaking water did not identify the
+plumbing control. This supports audio input reaching the model, not reliable
+speech understanding. The upstream example uses a different, 2B model and
+recording, so its reported result is not directly comparable.
