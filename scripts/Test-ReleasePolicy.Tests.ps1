@@ -7,7 +7,7 @@ $policy = Join-Path $PSScriptRoot 'Get-ReleaseMetadata.ps1'
 $passed = 0
 
 function Assert-ReleasePolicy {
-    param([hashtable]$Inputs, [string]$ExpectedVersion, [bool]$ExpectedPublish = $false, [string]$ExpectedError, [string]$ExpectedVerificationRun = '')
+    param([hashtable]$Inputs, [string]$ExpectedVersion, [bool]$ExpectedPublish = $false, [string]$ExpectedError, [string]$ExpectedVerificationRun = '', [string]$ExpectedCheckoutRef)
     $failure = $null
     $result = $null
     try {
@@ -22,43 +22,27 @@ function Assert-ReleasePolicy {
         }
     }
     elseif ($failure -or $result.Version -cne $ExpectedVersion -or $result.PublishAllowed -ne $ExpectedPublish -or
-        $result.RepositoryUrl -cne 'https://github.com/elbruno/ElBruno.AI.Decisions' -or $result.VerificationRun -cne $ExpectedVerificationRun) {
+        $result.RepositoryUrl -cne 'https://github.com/elbruno/ElBruno.AI.Decisions' -or $result.VerificationRun -cne $ExpectedVerificationRun -or
+        ($ExpectedCheckoutRef -and $result.CheckoutRef -cne $ExpectedCheckoutRef)) {
         throw "Unexpected release policy result: $failure"
     }
     $script:passed++
 }
 
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.0' } -ExpectedVersion '0.6.0'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = '1.0.0' } -ExpectedVersion '1.0.0'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.0'; Ref = 'v0.6.0' } -ExpectedVersion '0.6.0'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.0'; Ref = 'v0.6.0'; ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.0' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.0'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.0' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.0-preview.1'; Ref = '0.6.0-preview.1'; ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.0-preview.1' -ExpectedPublish $true
+Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.0' } -ExpectedVersion '0.6.0' -ExpectedCheckoutRef 'refs/tags/v0.6.0'
+Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = '1.0.0' } -ExpectedVersion '1.0.0' -ExpectedCheckoutRef 'refs/tags/1.0.0'
 Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.1'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.1' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.1'; Ref = 'v0.6.1' } -ExpectedVersion '0.6.1'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.2'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.2' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.2'; Ref = 'v0.6.2' } -ExpectedVersion '0.6.2'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.2'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.3'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.6.3' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.6.3'; Ref = 'v0.6.3' } -ExpectedVersion '0.6.3'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.6.3'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-foreach ($version in @('0.6.4', '1.0.0', '0.6.0-beta.1')) {
-    Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = "v$version"; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative 0.6.0'
+foreach ($version in @('0.10.0', '1.0.0', '12.3.4-beta.1')) {
+    Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = "v$version" } -ExpectedVersion $version -ExpectedCheckoutRef "refs/tags/v$version"
+    Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = "v$version"; ApproveUnverifiedPublication = $true } -ExpectedVersion $version -ExpectedPublish $true
+    Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion $version -ExpectedPublish $true -ExpectedCheckoutRef ('a' * 40)
 }
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.0'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.7.0' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.0'; Ref = 'v0.7.0' } -ExpectedVersion '0.7.0'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.7.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.7.1'; Ref = 'v0.7.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.0'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.8.0' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.0'; Ref = 'v0.8.0' } -ExpectedVersion '0.8.0'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.8.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.8.1'; Ref = 'v0.8.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.9.0'; Ref = ('a' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.9.0' -ExpectedPublish $true
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.9.0'; Ref = 'v0.9.0' } -ExpectedVersion '0.9.0'
-Assert-ReleasePolicy @{ EventName = 'release'; ReleaseTag = 'v0.9.0'; ApproveUnverifiedPublication = $true } -ExpectedError 'explicitly approved manual'
-Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = '0.9.1'; Ref = 'v0.9.1'; ApproveUnverifiedPublication = $true } -ExpectedError 'authorized tentative'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; SourceVersion = '0.10.0'; SourceCommit = ('b' * 40); ApproveUnverifiedPublication = $true } -ExpectedVersion '0.10.0' -ExpectedPublish $true -ExpectedCheckoutRef ('b' * 40)
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; SourceVersion = '0.10.0'; SourceCommit = ('b' * 40) } -ExpectedVersion '0.10.0'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; Ref = 'main'; SourceVersion = '0.10.0'; SourceCommit = ('b' * 40) } -ExpectedError 'Latest requires'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; SourceVersion = '0.10.0'; SourceCommit = 'main' } -ExpectedError 'Latest requires'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; SourceCommit = ('b' * 40) } -ExpectedError 'Latest requires'
+Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = 'latest'; SourceVersion = 'latest'; SourceCommit = ('b' * 40) } -ExpectedError 'Expected SemVer'
 foreach ($version in @('01.6.0', '0.6.0+build', '0.6.0;echo unsafe')) {
     Assert-ReleasePolicy @{ EventName = 'workflow_dispatch'; Version = $version; Ref = ('a' * 40) } -ExpectedError 'Expected SemVer'
 }

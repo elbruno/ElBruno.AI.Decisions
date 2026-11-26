@@ -4,10 +4,8 @@ Use locally installed decision models through [Llama App](https://llama.app/docs
 Start Llama App and load a decision model, then configure its model ID and endpoint:
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Llama --version 0.9.0
+dotnet add package ElBruno.AI.Decisions.Llama
 ```
-
-The package is not yet published; the command applies after release.
 
 ```csharp
 using ElBruno.AI.Decisions.Llama;

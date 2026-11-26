@@ -6,15 +6,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Exact SemVer to validate, for example 0.9.0 (no v prefix)'
+        description: 'Exact SemVer (no v prefix), or latest for the default branch declared version'
         required: true
         type: string
       ref:
-        description: 'Existing release tag or full commit SHA to build'
-        required: true
+        description: 'Matching release tag or full commit SHA; leave empty for latest'
+        required: false
         type: string
       approve-unverified-publication:
-        description: 'Approve publishing a preview or authorized tentative 0.6.0/0.6.1/0.6.2/0.6.3/0.7.0/0.8.0/0.9.0 despite unverified live Jev compatibility'
+        description: 'Approve publishing this version despite unverified live Jev compatibility'
         required: true
         default: false
         type: boolean
@@ -49,6 +49,7 @@ jobs:
       repository: ${{ steps.metadata.outputs.repository }}
       publish_allowed: ${{ steps.metadata.outputs.publish_allowed }}
       verification_run: ${{ steps.metadata.outputs.verification_run }}
+      checkout_ref: ${{ steps.metadata.outputs.checkout_ref }}
       commit: ${{ steps.commit.outputs.commit }}
     steps:
       - name: Checkout release-policy implementation
@@ -64,26 +65,42 @@ jobs:
           INPUT_REF: ${{ inputs.ref }}
           APPROVE_UNVERIFIED_PUBLICATION: ${{ inputs.approve-unverified-publication }}
           VERIFY_PUBLISHED_RUN: ${{ inputs.verify-published-run }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           & .\scripts\Test-ReleasePolicy.Tests.ps1
+          $sourceVersion = ''
+          if ($env:INPUT_VERSION -ceq 'latest') {
+            if ($env:GITHUB_REF -cne "refs/heads/$env:DEFAULT_BRANCH") {
+              throw 'Latest must be dispatched from the default branch.'
+            }
+            if ((git rev-parse HEAD) -cne $env:GITHUB_SHA -or $LASTEXITCODE -ne 0) {
+              throw 'Latest source checkout does not match the dispatch commit.'
+            }
+            $props = [xml](Get-Content -LiteralPath .\Directory.Build.props -Raw)
+            $nodes = @($props.SelectNodes('/Project/PropertyGroup/Version'))
+            if ($nodes.Count -ne 1) { throw 'Latest requires exactly one declared Version in Directory.Build.props.' }
+            $sourceVersion = $nodes[0].InnerText
+          }
           $metadata = & .\scripts\Get-ReleaseMetadata.ps1 -EventName $env:EVENT_NAME -ReleaseTag $env:RELEASE_TAG `
             -Version $env:INPUT_VERSION -Ref $env:INPUT_REF -Repository $env:GITHUB_REPOSITORY `
+            -SourceVersion $sourceVersion -SourceCommit $env:GITHUB_SHA `
             -ApproveUnverifiedPublication:($env:APPROVE_UNVERIFIED_PUBLICATION -ceq 'true') -VerifyPublishedRun $env:VERIFY_PUBLISHED_RUN
           $publishAllowed = $metadata.PublishAllowed.ToString().ToLowerInvariant()
           "version=$($metadata.Version)" >> $env:GITHUB_OUTPUT
+          "checkout_ref=$($metadata.CheckoutRef)" >> $env:GITHUB_OUTPUT
           "repository=$($metadata.RepositoryUrl)" >> $env:GITHUB_OUTPUT
           "publish_allowed=$publishAllowed" >> $env:GITHUB_OUTPUT
           "verification_run=$($metadata.VerificationRun)" >> $env:GITHUB_OUTPUT
           if ($metadata.VerificationRun) {
             'Public verification only: use the original artifacts, with no rebuild, NuGet publication, or OIDC exchange.' >> $env:GITHUB_STEP_SUMMARY
           } elseif ($publishAllowed -eq 'false') {
-            'Validation only: no NuGet publication or OIDC exchange. An explicitly approved manual preview or authorized tentative version dispatch is required to publish.' >> $env:GITHUB_STEP_SUMMARY
+            'Validation only: no NuGet publication or OIDC exchange. An explicitly approved manual dispatch is required to publish.' >> $env:GITHUB_STEP_SUMMARY
           } else {
-            'Tentative publication explicitly approved. Live Jev compatibility remains unverified; this is not a production-readiness claim.' >> $env:GITHUB_STEP_SUMMARY
+            'Publication explicitly approved. Live Jev compatibility remains unverified; this is not a production-readiness claim.' >> $env:GITHUB_STEP_SUMMARY
           }
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name || inputs.ref }}
+          ref: ${{ steps.metadata.outputs.checkout_ref }}
           fetch-depth: 0
           persist-credentials: false
       - name: Resolve immutable release commit
@@ -156,7 +173,7 @@ jobs:
             ForEach-Object { (Resolve-Path ".\src\$_\$_.csproj").Path }
           $packages = Join-Path (Join-Path $PWD artifacts) packages
           $properties = @("-p:Version=$env:PACKAGE_VERSION", "-p:RepositoryUrl=$env:REPOSITORY_URL", "-p:RepositoryCommit=$env:RELEASE_COMMIT",
-            "-p:PackageProjectUrl=$env:REPOSITORY_URL", "-p:PackageReleaseNotes=Tentative early-access SDK $env:PACKAGE_VERSION. Live Jev compatibility is unverified. Evaluate before production use. See $env:REPOSITORY_URL/releases.")
+            "-p:PackageProjectUrl=$env:REPOSITORY_URL", "-p:PackageReleaseNotes=SDK $env:PACKAGE_VERSION. Live Jev compatibility is unverified. Evaluate before production use. See $env:REPOSITORY_URL/releases.")
           foreach ($project in $projects) {
             dotnet pack $project --configuration Release --no-restore --output $packages @properties
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -215,7 +232,7 @@ jobs:
         run: |
           foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama', 'ElBruno.AI.Decisions.Llama')) {
             $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "$id.$env:PACKAGE_VERSION.nupkg"
-            dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300 --skip-duplicate
+            dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
       - name: Verify public indexing and exact restored package

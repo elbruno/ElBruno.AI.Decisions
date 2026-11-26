@@ -6,6 +6,8 @@ param(
     [string]$ReleaseTag,
     [string]$Version,
     [string]$Ref,
+    [string]$SourceVersion,
+    [string]$SourceCommit,
     [Parameter(Mandatory)]
     [string]$Repository,
     [switch]$ApproveUnverifiedPublication,
@@ -15,6 +17,14 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($EventName -ceq 'release') { $Version = $ReleaseTag -creplace '^v', '' }
+if ($Version -ceq 'latest') {
+    if ($EventName -cne 'workflow_dispatch' -or $Ref -or
+        $SourceCommit -cnotmatch '^[0-9a-fA-F]{40}\z' -or [string]::IsNullOrWhiteSpace($SourceVersion)) {
+        throw 'Latest requires a manual dispatch, an empty ref, and a source version and immutable source commit.'
+    }
+    $Version = $SourceVersion
+    $Ref = $SourceCommit
+}
 if ($Version -cnotmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?\z') {
     throw 'Expected SemVer without build metadata; published tags may have one lowercase v prefix.'
 }
@@ -35,14 +45,21 @@ if ($VerifyPublishedRun) {
     }
 }
 if ($ApproveUnverifiedPublication) {
-    $isPreview = $Version -cmatch '^[0-9]+\.[0-9]+\.[0-9]+-preview(?:\.[0-9A-Za-z-]+)*\z'
-    if ($EventName -cne 'workflow_dispatch' -or (-not $isPreview -and $Version -cnotin @('0.6.0', '0.6.1', '0.6.2', '0.6.3', '0.7.0', '0.8.0', '0.9.0'))) {
-        throw 'Live compatibility is unverified. Only an explicitly approved manual preview or the authorized tentative 0.6.0, 0.6.1, 0.6.2, 0.6.3, 0.7.0, 0.8.0 or 0.9.0 may be published.'
+    if ($EventName -cne 'workflow_dispatch') {
+        throw 'Publication requires an explicitly approved manual dispatch.'
     }
     $publishAllowed = $true
 }
+$checkoutRef = if ($EventName -ceq 'release') {
+    "refs/tags/$ReleaseTag"
+} elseif ($Ref -match '^[0-9a-fA-F]{40}\z') {
+    $Ref
+} else {
+    "refs/tags/$Ref"
+}
 [pscustomobject]@{
     Version = $Version
+    CheckoutRef = $checkoutRef
     RepositoryUrl = "https://github.com/$Repository"
     PublishAllowed = $publishAllowed
     VerificationRun = $VerifyPublishedRun

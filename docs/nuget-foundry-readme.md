@@ -5,7 +5,7 @@ OpenAI Decisions API with the shared .NET 10 `IDecisionClient`: Choose, Score
 and Assess. This is a community SDK, not an official Microsoft SDK.
 
 ```powershell
-dotnet add package ElBruno.AI.Decisions.Foundry --version 0.9.0
+dotnet add package ElBruno.AI.Decisions.Foundry
 ```
 
 ## Quickstart

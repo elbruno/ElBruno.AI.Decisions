@@ -106,9 +106,8 @@ has explicitly authorized **tentative 0.6.0** while live checks are deferred.
 The maintainer also authorized **tentative 0.6.1** on October 9, 2026 to publish
 the native Ollama System One correction. Local Ollama decision-model and Jev
 live compatibility remain unverified.
-Manual preview publication is also supported; both paths must acknowledge that
-live compatibility is unverified. Suffix-free publication is restricted to
-the explicitly authorized `0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0`, `0.8.0` and `0.9.0` versions.
+Manual publication of any valid version requires explicit approval acknowledging
+that live Jev compatibility is unverified.
 The maintainer authorized tentative `0.6.2` to correct package-specific NuGet
 READMEs. NuGet package contents are immutable; this requires a new version.
 The maintainer authorized tentative `0.6.3` on October 14, 2026 for
@@ -154,11 +153,11 @@ The check:
 - Confirms the archive's root `README.md` matches the package-specific source:
   `docs\nuget-core-readme.md`, `docs\nuget-foundry-readme.md`,
   `docs\nuget-ollama-readme.md`, or Jev's `docs\nuget-readme.md`.
-  Checks the package heading and exact-version installation command,
+  Checks the package heading and version-neutral installation command,
   ignoring UTF-8 BOM and CRLF/LF differences. This preserves the dedicated
   NuGet page instead of accidentally packing the repository README's relative
   hero image. Check downloaded artifacts from their matching release checkout.
-- Requires tentative/unverified notices in the actual 0.6.0/0.6.1/0.6.2/0.6.3 Jev package description,
+- Requires unverified live-compatibility notices in the actual Jev package description,
   release notes, and packaged README, not just in the repository.
 - Copies the standalone consumer into a uniquely named directory under
   `tests\ElBruno.AI.Decisions.Jev.PackageTests\.work`. Its only SDK dependency is an
@@ -238,29 +237,30 @@ fixtures. macOS runs a build/unit-test smoke job. Live integration tests remain 
 1. A **published GitHub release** with a tag such as `v0.6.0` or
    `0.6.0`; the tag resolves the exact source commit. This runs
    validation only and never automatically publishes to NuGet.
-2. **Manual dispatch** with required `version` and `ref` inputs. `version` has
-   no `v` prefix. `ref` must be the corresponding version tag, optionally
-   prefixed `v`, or a full 40-character commit SHA. Arbitrary moving branch
-   names are not accepted. The boolean `approve-unverified-publication` defaults
-   to **false**, which also means validation only.
+2. **Manual dispatch** with a required `version` input. For an exact SemVer
+   without a `v` prefix, `ref` must be the corresponding version tag, optionally
+   prefixed `v`, or a full 40-character commit SHA. Tags are resolved specifically
+   as tags, and arbitrary moving branch names are not accepted. Alternatively,
+   set `version` to `latest`, leave `ref` empty, and dispatch from the default
+   branch. This means the single `Version` in `Directory.Build.props` at the
+   immutable dispatch commit, not the newest version on NuGet or the newest tag.
+   The boolean `approve-unverified-publication` defaults to **false**, which
+   means validation only.
 
 **Publication is blocked by default while live compatibility is unverified.**
-Only a manual dispatch with `approve-unverified-publication=true` and either
-an explicitly authorized **`0.6.0`, `0.6.1`, `0.6.2`, `0.6.3`, `0.7.0`, `0.8.0` or `0.9.0`** or a
-`major.minor.patch-preview[.identifier...]` version can reach the publishing
-job. That input acknowledges the absence of successful live validation;
-it is not an attestation that live tests passed. Other suffix-free versions
-(including `0.5.1` and `1.0.0`) and other prerelease channels remain blocked.
+Only a manual dispatch with `approve-unverified-publication=true` can reach
+the publishing job, for any valid stable or prerelease version. That input
+acknowledges the absence of successful live Jev validation;
+it is not an attestation that live tests passed.
 `Get-ReleaseMetadata.ps1` owns this policy; `Test-ReleasePolicy.Tests.ps1`
-checks the exact exception, opt-in requirement, event/ref constraints, and
-invalid versions on every validation run. Creating a GitHub release, approving repository
+checks the opt-in requirement, event/ref constraints, latest resolution inputs,
+and invalid versions on every validation run. Creating a GitHub release, approving repository
 creation, or leaving the checkbox unchecked does not authorize a NuGet push.
 
-NuGet treats **`0.6.0` as a stable-channel version** because it has no prerelease
-suffix; NuGet has no separate tentative flag. The description, package README,
-release notes, and repository status therefore prominently disclose tentative
-early-access status and deferred live compatibility. A GitHub release may be
-marked prerelease independently, but that does not change NuGet's classification.
+NuGet treats suffix-free versions as stable-channel releases. A GitHub release
+may be marked prerelease independently, but that does not change NuGet's
+classification. Jev's description, package README, and release notes must
+disclose deferred live compatibility regardless of version.
 
 Inputs are validated and passed to shell scripts through environment variables,
 not interpolated into executable shell text. The workflow resolves the checkout
@@ -278,8 +278,10 @@ still derives its overrides from the real `GITHUB_REPOSITORY` and resolves
 an actual checkout commit. Repository creation alone does not establish a
 published source revision or valid Source Link evidence.
 
-The protected **`release` environment** additionally gates an approved tentative
-publication. It is configured to require approval from `elbruno`. All jobs have
+The **`release` environment** gates an approved publication. Verify its
+protection rules in GitHub before publishing: on November 25, 2026, the API
+reported no protection rules despite the previous documentation stating that
+reviewer approval was required. All jobs have
 `contents: read`; only the publishing job additionally has `id-token: write`.
 The job rechecks the downloaded, validated Linux artifacts and exchanges OIDC
 through **`NuGet/login@v1`**, with the account name supplied by the
@@ -292,7 +294,7 @@ username (`elbruno`), not an API key. No long-lived NuGet API key is needed.
 The existing NuGet trusted-publishing policy was successfully used to publish
 **`ElBruno.AI.Decisions.Jev` 0.6.0**. **Reuse it; do not create a duplicate.** The OIDC
 exchange and first package/symbol push succeeded. `NUGET_USER` is now configured
-in the protected `release` environment; the original publication used the same
+in the `release` environment; the original publication used the same
 secret name at repository scope. Before changing the publishing configuration,
 verify:
 
@@ -361,8 +363,8 @@ does **not** replace a review of the initial public API. Before authorization:
   mapping validation alone does not prove public repository visibility.
 - Finish actual coverage gates. Before claiming production readiness, finish
   authorized live-contract validation; offline consumer success is not
-  live-service compatibility evidence. Tentative 0.6.0 and approved previews
-  must disclose unverified live compatibility rather than claim those tests passed.
+  live-service compatibility evidence. Every Jev release must disclose unverified
+  live compatibility rather than claim those tests passed.
 
 After an approved version is published, configure
 `PackageValidationBaselineVersion` to the last appropriate published version
