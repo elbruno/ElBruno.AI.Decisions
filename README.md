@@ -13,7 +13,7 @@
 One .NET API for **classification, routing, rubric scoring, and proposition
 assessment**, with probability distributions instead of generated text.
 Start with Microsoft-Decision-1 on **Foundry**, run models locally with
-**Foundry Local** or **Ollama**, or use the native **Jev** SDK.
+**Foundry Local**, **Llama App**, or **Ollama**, or use the native **Jev** SDK.
 
 Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisions.md).
 
@@ -21,18 +21,13 @@ Read the [introduction and quickstarts](docs/blog/introducing-elbruno-ai-decisio
 | --- | --- | --- | --- |
 | `ElBruno.AI.Decisions` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions) | `IDecisionClient`, Choice/Score/Assessment results, Microsoft.Extensions.AI routing |
 | `ElBruno.AI.Decisions.Foundry` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry) | Microsoft-Decision-1/SystemOne and gpt-6-luna/Azure OpenAI Decisions |
-| `ElBruno.AI.Decisions.Foundry.Local` | In development | — | Cached typed-decision models through the Foundry Local SDK |
+| `ElBruno.AI.Decisions.Foundry.Local` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Foundry.Local.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry.Local) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Foundry.Local.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry.Local) | Cached typed-decision models through the Foundry Local SDK |
 | `ElBruno.AI.Decisions.Ollama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Ollama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama) | Local System One decision models through `/v1/systemone` |
-| `ElBruno.AI.Decisions.Llama` | Not yet released | Not yet released | Llama App text, image and audio decision models |
+| `ElBruno.AI.Decisions.Llama` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Llama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Llama) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Llama.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Llama) | Llama App text, image and audio decision models |
 | `ElBruno.AI.Decisions.Jev` | [![NuGet](https://img.shields.io/nuget/v/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | [![Downloads](https://img.shields.io/nuget/dt/ElBruno.AI.Decisions.Jev.svg?style=flat-square)](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev) | Native TypeSafe AI Jev SDK and an `IDecisionClient` adapter |
 
-**Early access:** version `0.8.0` adds Foundry project endpoints and
-endpoint-first constructors while preserving batch/image decisions and
-provider-reported token usage:
-[core](https://www.nuget.org/packages/ElBruno.AI.Decisions/0.8.0),
-[Foundry](https://www.nuget.org/packages/ElBruno.AI.Decisions.Foundry/0.8.0),
-[Ollama](https://www.nuget.org/packages/ElBruno.AI.Decisions.Ollama/0.8.0), and
-[Jev](https://www.nuget.org/packages/ElBruno.AI.Decisions.Jev/0.8.0).
+**Release:** version `0.10.0` is available for all six packages, including
+Foundry Local and Llama. Live Jev compatibility remains unverified.
 See [release status and instructions](docs/releasing.md) for limitations.
 The original `ElBruno.AI.Jev` package has **not yet been deprecated**.
 **Ollama correction:** native System One support requires `0.6.1` or later.
@@ -191,9 +186,12 @@ decisions and native named batches with image and audio input. Start Llama App
 with a locally installed decision model; no model is downloaded by the SDK.
 Run `dotnet run --project samples/13-LlamaDecision` and optionally pass
 `--model <id>`, `--endpoint <url>`, `--image <path>` or `--audio <path>`.
-`--offline` uses synthetic responses. The package is not yet published.
+`--offline` uses synthetic responses. Install the
+[Llama package](https://www.nuget.org/packages/ElBruno.AI.Decisions.Llama).
 See the [package guide](docs/nuget-llama-readme.md) for privacy, limits and
-score semantics. Model confidence does not establish accuracy.
+score semantics. Audio input reached the tested model, but reliable speech
+classification remains unverified. Model confidence does not establish accuracy;
+see the [sample's audio findings](samples/13-LlamaDecision/README.md).
 
 ## 2. Ollama: local decisions
 
@@ -298,7 +296,8 @@ and Jev order, and [decision semantics](docs/decisions.md) for native Jev detail
 | Review chat inputs or buffered outputs | [MEAI assessments](samples/09-MEAI-Assessments/README.md) |
 | RAG relevance and reranking | [RAG sample](samples/10-RagReranking/README.md) |
 
-Samples 01-10 use the native Jev SDK. Samples 11-12 use the shared API.
+Samples 01-10 use the native Jev SDK. Samples 11-12 use the shared API;
+sample 13 demonstrates the Llama shared and multimodal APIs.
 Do not assume native Jev features such as model discovery exist in every provider.
 
 ## Run without credentials
