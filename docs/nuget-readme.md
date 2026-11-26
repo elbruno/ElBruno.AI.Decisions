@@ -10,6 +10,8 @@ A community .NET 10 client for the official TypeSafe AI Jev service. It is one p
 dotnet add package ElBruno.AI.Decisions.Jev
 ```
 
+For a specific version, including a prerelease, add `--version <version>`.
+
 ## Capabilities
 
 The Foundry package uses `/providers/microsoft/v1/systemone` and the named

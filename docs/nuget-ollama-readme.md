@@ -9,6 +9,8 @@ dotnet add package ElBruno.AI.Decisions.Ollama
 ollama pull nimble
 ```
 
+For a specific package version, including a prerelease, add `--version <version>` to the `dotnet add` command.
+
 Requires a running **Ollama v0.35.0 or later** and a local System One decision
 model such as `nimble`, Tev1, `clef`, or `clef-flash`, not a general-purpose
 chat model. No local API key is required.

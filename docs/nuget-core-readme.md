@@ -9,6 +9,8 @@ neither is a guarantee of correctness.
 dotnet add package ElBruno.AI.Decisions
 ```
 
+For a specific version, including a prerelease, add `--version <version>`.
+
 This package contains abstractions and `DecisionRoutingChatClient`, not a model
 or an HTTP provider. Install the provider that matches your deployment:
 

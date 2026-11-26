@@ -8,6 +8,8 @@ and Assess. This is a community SDK, not an official Microsoft SDK.
 dotnet add package ElBruno.AI.Decisions.Foundry
 ```
 
+For a specific version, including a prerelease, add `--version <version>`.
+
 ## Quickstart
 
 Deploy Microsoft-Decision-1 in Foundry and run `az login`. The endpoint-first

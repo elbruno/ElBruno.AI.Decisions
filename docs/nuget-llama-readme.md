@@ -7,6 +7,8 @@ Start Llama App and load a decision model, then configure its model ID and endpo
 dotnet add package ElBruno.AI.Decisions.Llama
 ```
 
+For a specific version, including a prerelease, add `--version <version>`.
+
 ```csharp
 using ElBruno.AI.Decisions.Llama;
 
