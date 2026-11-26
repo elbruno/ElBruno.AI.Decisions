@@ -230,7 +230,7 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
-          foreach ($id in @('ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama', 'ElBruno.AI.Decisions.Llama')) {
+          foreach ($id in @('ElBruno.AI.Decisions.Llama', 'ElBruno.AI.Decisions', 'ElBruno.AI.Decisions.Jev', 'ElBruno.AI.Decisions.Foundry', 'ElBruno.AI.Decisions.Foundry.Local', 'ElBruno.AI.Decisions.Ollama')) {
             $package = Join-Path (Join-Path (Join-Path $PWD artifacts) packages) "$id.$env:PACKAGE_VERSION.nupkg"
             dotnet nuget push $package --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -278,10 +278,10 @@ still derives its overrides from the real `GITHUB_REPOSITORY` and resolves
 an actual checkout commit. Repository creation alone does not establish a
 published source revision or valid Source Link evidence.
 
-The **`release` environment** gates an approved publication. Verify its
-protection rules in GitHub before publishing: on November 25, 2026, the API
-reported no protection rules despite the previous documentation stating that
-reviewer approval was required. All jobs have
+The **`release` environment** gates an approved publication. Its reviewer
+rule was removed at the maintainer's request because manual approval on every
+release was not workable. The explicit workflow publication input remains
+required. All jobs have
 `contents: read`; only the publishing job additionally has `id-token: write`.
 The job rechecks the downloaded, validated Linux artifacts and exchanges OIDC
 through **`NuGet/login@v1`**, with the account name supplied by the
@@ -314,7 +314,10 @@ Global publication concurrency prevents overlapping publication jobs, including
 duplicate-version attempts. The workflow pushes the exact validated `.nupkg`;
 `dotnet nuget push` also submits its adjacent `.snupkg` by default. Deliberately
 do **not** add `--skip-duplicate`: an unexpected duplicate must fail, not appear
-to be a successful new publication.
+to be a successful new publication. The new Llama package is pushed first so
+an unsupported first-publication scope fails before pushing the other packages.
+Any later failure can still leave a partial publication; inspect each package
+and the original run before deciding how to recover.
 
 After push, the workflow calls `Test-Package.ps1 -UsePublicFeed` for up to twenty
 exact-version public restores, 60 seconds apart, with a fresh isolated package/HTTP cache on
